@@ -20,8 +20,8 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         current = this;
-        pieces = new Piece[64];
-        tiles = new GameObject[64];
+        pieces = new Piece[576];
+        tiles = new GameObject[576];
         isPlayerWhite = true;
         isPlayerTurn = isPlayerWhite;
         undoMoves = new Stack<Move>();
@@ -83,11 +83,11 @@ public class GameManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0)) //player selects piece
             {
                 Vector2Int mousePosition = GetMousePosition();
-                if (mousePosition.x < 0 || mousePosition.x > 7 || mousePosition.y < 0 || mousePosition.y > 7)
+                if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
                 {
                     return;
                 }
-                selectedPiece = pieces[mousePosition.y * 8 + mousePosition.x];
+                selectedPiece = pieces[mousePosition.y * 24 + mousePosition.x];
                 if (selectedPiece != null)
                 {
                     if (selectedPiece.color != whoseTurn)
@@ -113,7 +113,7 @@ public class GameManager : MonoBehaviour
             {
 
                 Vector2Int mousePosition = GetMousePosition();
-                if (mousePosition.x < 0 || mousePosition.x > 7 || mousePosition.y < 0 || mousePosition.y > 7)
+                if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
                 {
                     return;
                 }
@@ -131,9 +131,9 @@ public class GameManager : MonoBehaviour
 
     Vector2Int GetMousePosition() //returns mouse position
     {
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 mousePosition = 0.4f * Camera.main.ScreenToWorldPoint(Input.mousePosition);
         int positionX = Mathf.CeilToInt(mousePosition.x) + 3;
-        int positionY = Mathf.CeilToInt(mousePosition.y) + 3;
+        int positionY = Mathf.CeilToInt(mousePosition.y)+ 3;
         return new Vector2Int(positionX, positionY);
     }
 
@@ -143,35 +143,35 @@ public class GameManager : MonoBehaviour
         {
             if (!isColored)
             {
-                SpriteRenderer sprRenderer = tiles[tile.y*8+tile.x].GetComponent<SpriteRenderer>();
+                SpriteRenderer sprRenderer = tiles[tile.y*24+tile.x].GetComponent<SpriteRenderer>();
                 sprRenderer.sprite = Resources.Load<Sprite>("selectedTile");
             }
             else
             {
-                SpriteRenderer sprRenderer = tiles[tile.y*8+tile.x].GetComponent<SpriteRenderer>();
-                sprRenderer.sprite = (((tile.y*7+tile.x)%2)==0) ? Resources.Load<Sprite>("blackTile") : Resources.Load<Sprite>("whiteTile");
+                SpriteRenderer sprRenderer = tiles[tile.y*24+tile.x].GetComponent<SpriteRenderer>();
+                sprRenderer.sprite = (((tile.y*24+tile.x)%2)==0) ? Resources.Load<Sprite>("blackTile") : Resources.Load<Sprite>("whiteTile");
             }
         }
     }
     void DeselectPiece() //deselect players selected piece
     {
         Vector2Int mousePosition = GetMousePosition();
-        if (mousePosition.x < 0 || mousePosition.x > 7 || mousePosition.y < 0 || mousePosition.y > 7)
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
         {
             return;
         }
-        selectedPiece.gameObject.transform.position = new Vector3(selectedPiece.boardPosition.x*1f-3.5f, selectedPiece.boardPosition.y*1f-3.5f, -1f);
+        selectedPiece.gameObject.transform.position = 0.4f * new Vector3(selectedPiece.boardPosition.x*1f-12.7f, selectedPiece.boardPosition.y*1f-11.7f, -1f);
         ColorTiles(possiblePlayerMoves, true);
         selectedPiece = null;
     }
 
     Piece GetPieceViaPosition(Vector2Int position)
     {
-        if (position.x < 0 || position.x > 7 || position.y < 0 || position.y > 7)
+        if (position.x < 0 || position.x > 24 || position.y < 0 || position.y > 24)
         {
             return null;
         }
-        Piece temp = pieces[position.y * 8 + position.x];
+        Piece temp = pieces[position.y * 1 + position.x];
         return temp;
     }
     void PlayMove(bool isPermanent, Move move, List<Vector2Int> possibleMoves, bool IsPlayersPurposefulMove) //plays move,
@@ -233,22 +233,22 @@ public class GameManager : MonoBehaviour
         {
             if (move.attackedPieceBP.x > move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x + 3];
-                rook.gameObject.transform.position = new Vector3(move.attackedPieceBP.x - 3.5f-1, move.attackedPieceBP.y - 3.5f, -1);
+                Piece rook = pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x + 3];
+                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f-1, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x-1] = rook;//set index position
-                pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x + 3] = null;
+                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x-1] = rook;//set index position
+                pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x + 3] = null;
                 //set board Position
                 rook.boardPosition = new Vector2Int(move.attackedPieceBP.x-1, move.attackedPieceBP.y);
                 rook.amountMoved +=1;
             }
             else if (move.attackedPieceBP.x < move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x -4];
-                rook.gameObject.transform.position = new Vector3(move.attackedPieceBP.x - 3.5f+1, move.attackedPieceBP.y - 3.5f, -1);
+                Piece rook = pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x -4];
+                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f+1, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x+1] = rook;//set index position
-                pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x -4] = null;
+                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x+1] = rook;//set index position
+                pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x -4] = null;
                 //set board Position
                 rook.boardPosition = new Vector2Int(move.attackedPieceBP.x+1, move.attackedPieceBP.y);
                 rook.amountMoved +=1;
@@ -256,10 +256,10 @@ public class GameManager : MonoBehaviour
         }
 
         //set actual position
-        attackingPiece.gameObject.transform.position = new Vector3(move.attackedPieceBP.x - 3.5f, move.attackedPieceBP.y - 3.5f, -1);//new Vector3(mousePosition.x-3.5f, mousePosition.y-3.5f, -1);
+        attackingPiece.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f, move.attackedPieceBP.y - 11.7f, -1);
         //set index position
-        pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x] = attackingPiece;//set index position
-        pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x] = null;
+        pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x] = attackingPiece;//set index position
+        pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x] = null;
         //set board Position
         attackingPiece.boardPosition = new Vector2Int(move.attackedPieceBP.x, move.attackedPieceBP.y);
         
@@ -330,7 +330,7 @@ public class GameManager : MonoBehaviour
             RemoveIllegalMoves(whichColor, pieceMoves, piece);
             foreach(Vector2Int move in pieceMoves)
             {
-                Move newMove = new Move(piece, pieces[move.y * 8 + move.x], move);
+                Move newMove = new Move(piece, pieces[move.y * 1 + move.x], move);
                 possibleMoves.Add(newMove);
             }
         }
@@ -424,31 +424,31 @@ public class GameManager : MonoBehaviour
         {
             if (move.attackedPieceBP.x > move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x - 1];
-                rook.gameObject.transform.position = new Vector3(move.attackedPieceBP.x - 3.5f + 1, move.attackedPieceBP.y - 3.5f, -1);
+                Piece rook = pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x - 1];
+                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f + 1, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x - 1] = null;//set index position
-                pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x + 3] = rook;
+                pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x - 1] = null;//set index position
+                pieces[move.movingPieceBP.y * 1 + move.movingPieceBP.x + 3] = rook;
                 //set board Position
                 rook.boardPosition = new Vector2Int(move.movingPieceBP.x + 3, move.movingPieceBP.y);
                 rook.amountMoved -= 1;
             }
             else if (move.attackedPieceBP.x < move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x + 1];
-                rook.gameObject.transform.position = new Vector3(move.attackedPieceBP.x - 3.5f - 2, move.attackedPieceBP.y - 3.5f, -1);
+                Piece rook = pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x + 1];
+                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f - 2, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x + 1] = null;//set index position
-                pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x - 4] = rook;
+                pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x + 1] = null;//set index position
+                pieces[move.movingPieceBP.y * 1 + move.movingPieceBP.x - 4] = rook;
                 //set board Position
                 rook.boardPosition = new Vector2Int(move.movingPieceBP.x - 4, move.movingPieceBP.y);
                 rook.amountMoved -= 1;
             }
         }
-        attackingPiece.gameObject.transform.position = new Vector3(move.movingPieceBP.x - 3.5f, move.movingPieceBP.y - 3.5f, -1);//new Vector3(mousePosition.x-3.5f, mousePosition.y-3.5f, -1);
+        attackingPiece.gameObject.transform.position = 0.4f * new Vector3(move.movingPieceBP.x - 12.7f, move.movingPieceBP.y - 11.7f, -1);
         //set index position
-        pieces[move.movingPieceBP.y * 8 + move.movingPieceBP.x] = attackingPiece;//set index position
-        pieces[move.attackedPieceBP.y * 8 + move.attackedPieceBP.x] = temp;
+        pieces[move.movingPieceBP.y * 1 + move.movingPieceBP.x] = attackingPiece;//set index position
+        pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x] = temp;
         //set board Position
         attackingPiece.boardPosition = new Vector2Int(move.movingPieceBP.x, move.movingPieceBP.y);
         if (attackingPiece.boardPosition.y == attackingPiece.startingBoardPosition.y)
@@ -458,8 +458,8 @@ public class GameManager : MonoBehaviour
         if (temp != null)
         {
             //set actual position
-            temp.gameObject.transform.position = new Vector3(move.attackedPieceBP.x-3.5f,
-                move.attackedPieceBP.y-3.5f, -1);
+            temp.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x-12.7f,
+                move.attackedPieceBP.y-11.7f, -1);
             
         }
 
@@ -490,9 +490,9 @@ public class GameManager : MonoBehaviour
     float PieceSquareEvaluation() //positive is white
     {
         float evaluation=0;
-        for (int y=0; y<8; y++)
+        for (int y=0; y<24; y++)
         {
-            for (int x=0; x<8; x++)
+            for (int x=0; x<24; x++)
             {
                 Piece piece = pieces[y*8+x];
                 if (piece != null)
@@ -501,7 +501,7 @@ public class GameManager : MonoBehaviour
                     float scoreFromTable = 0;
                     if (piece.color == true)
                     {
-                        scoreFromTable = BoardPieceValuation.pieceTableWhite[pType, y*8+x];
+                        scoreFromTable = BoardPieceValuation.pieceTableWhite[pType, y*24+x];
                         if (isPlayerWhite)
                         {
                             evaluation += scoreFromTable;
@@ -513,7 +513,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        scoreFromTable = BoardPieceValuation.pieceTableWhite[pType, (7-y)*8+(7-x)];
+                        scoreFromTable = BoardPieceValuation.pieceTableWhite[pType, (23-y)*24+(23-x)];
                         if (!isPlayerWhite)
                         {
                             evaluation += scoreFromTable;
