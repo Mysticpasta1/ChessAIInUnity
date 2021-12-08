@@ -24,8 +24,8 @@ public class Piece : MonoBehaviour
         boardPosition = new Vector2Int((int)xy.x, (int)xy.y);
         startingBoardPosition = boardPosition;
         SpriteRenderer sprRenderer = gameObject.AddComponent<SpriteRenderer>();
-        int index = (int)(xy.y*8 + xy.x);
-        if (xy.y < 2)
+        int index = (int)(xy.y*24 + xy.x);
+        if (xy.y < 4)
         {
             color = true;
         }
@@ -33,32 +33,32 @@ public class Piece : MonoBehaviour
             color = false;
         }
 
-        if (xy.y == 1 || xy.y == 6)
+        if (xy.y == 2 || xy.y == 21)
         {
             pieceType = 1;
         }
         else
         {
-            if (xy.x == 0 || xy.x == 7)
+            if (xy.x == 0 || xy.x == 23)
             {
                 pieceType = 2;
             }
-            else if (xy.x == 1 || xy.x == 6)
+            else if (xy.x == 1 || xy.x == 22)
             {
                 pieceType = 3;
 
             }
-            else if (xy.x == 2 || xy.x == 5)
+            else if (xy.x == 2 || xy.x == 21)
             {
                 pieceType = 4;
 
             }
-            else if (xy.x == 4)
+            else if (xy.x == 12)
             {
                 pieceType = 5;
 
             }
-            else if (xy.x == 3)
+            else if (xy.x == 7)
             {
                 pieceType = 6;
 
@@ -73,22 +73,22 @@ public class Piece : MonoBehaviour
                 case 0:
                     return;
                 case 1:
-                    sprRenderer.sprite = Resources.Load<Sprite>("PawnW");
+                    sprRenderer.sprite = Resources.Load<Sprite>("pawn 1");
                     return;
                 case 2:
-                    sprRenderer.sprite = Resources.Load<Sprite>("RookW");
+                    sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
                     return;
                 case 3:
-                    sprRenderer.sprite = Resources.Load<Sprite>("KnightW");
+                    sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
                     return;
                 case 4:
-                    sprRenderer.sprite = Resources.Load<Sprite>("BishopW");
+                    sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
                     return;
                 case 5:
-                    sprRenderer.sprite = Resources.Load<Sprite>("KingW");
+                    sprRenderer.sprite = Resources.Load<Sprite>("king 1");
                     return;
                 case 6:
-                    sprRenderer.sprite = Resources.Load<Sprite>("QueenW");
+                    sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
                     return;
             }
         }
@@ -99,22 +99,22 @@ public class Piece : MonoBehaviour
                 case 0:
                     return;
                 case 1:
-                    sprRenderer.sprite = Resources.Load<Sprite>("PawnB");
+                    sprRenderer.sprite = Resources.Load<Sprite>("pawn");
                     return;
                 case 2:
-                    sprRenderer.sprite = Resources.Load<Sprite>("RookB");
+                    sprRenderer.sprite = Resources.Load<Sprite>("rook");
                     return;
                 case 3:
-                    sprRenderer.sprite = Resources.Load<Sprite>("KnightB");
+                    sprRenderer.sprite = Resources.Load<Sprite>("knight");
                     return;
                 case 4:
-                    sprRenderer.sprite = Resources.Load<Sprite>("BishopB");
+                    sprRenderer.sprite = Resources.Load<Sprite>("bishop");
                     return;
                 case 5:
-                    sprRenderer.sprite = Resources.Load<Sprite>("KingB");
+                    sprRenderer.sprite = Resources.Load<Sprite>("king");
                     return;
                 case 6:
-                    sprRenderer.sprite = Resources.Load<Sprite>("QueenB");
+                    sprRenderer.sprite = Resources.Load<Sprite>("queen");
                     return;
             }
         }
@@ -177,7 +177,7 @@ public class Piece : MonoBehaviour
     {
         Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(-1, 0), new Vector2Int(1, 0)};
         List<Vector2Int> moves = new List<Vector2Int>();
-        if (boardPosition.y ==7 || boardPosition.y == 0)
+        if (boardPosition.y ==23 || boardPosition.y == 0)
         {
             return moves;
         }
@@ -187,7 +187,7 @@ public class Piece : MonoBehaviour
         foreach(Vector2Int offset in offsets)
         {
             index = boardPosition + pawnMove*colorType + offset;
-            if (index.x > 7 || index.y > 7 || index.x < 0 || index.y < 0)
+            if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
             {
                 continue;
             }
@@ -198,7 +198,7 @@ public class Piece : MonoBehaviour
         }
 
         index = boardPosition + pawnMove*colorType;
-        if (board[index.y*8+index.x])
+        if (board[index.y*24+index.x])
         {
             return moves;
         }
@@ -226,13 +226,13 @@ public class Piece : MonoBehaviour
             for (int i=1; i<8; i++)
             {
                 Vector2Int index = boardPosition + offset*i;
-                if (index.x > 7 || index.y > 7 || index.x < 0 || index.y < 0)
+                if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
                 {
                     break;
                 }
-                else if (board[index.y*8+index.x] !=null)
+                else if (board[index.y*24+index.x] !=null)
                 {
-                    if (board[index.y*8+index.x].color != color)
+                    if (board[index.y*24+index.x].color != color)
                     {
                         moves.Add(index);
                     }
@@ -254,11 +254,11 @@ public class Piece : MonoBehaviour
         foreach(Vector2Int offset in offsets)
         {
             Vector2Int index = boardPosition + offset;
-            if (index.x > 7 || index.y > 7 || index.x < 0 || index.y < 0)
+            if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
             {
                 continue;
             }
-            else if (board[index.y*8+index.x] !=null && board[index.y*8+index.x].color == color)
+            else if (board[index.y*24+index.x] !=null && board[index.y*24+index.x].color == color)
             {
                 continue;
             }
@@ -274,16 +274,16 @@ public class Piece : MonoBehaviour
         List<Vector2Int> moves = new List<Vector2Int>();
         foreach(Vector2Int offset in offsets)
         {
-            for (int i=1; i<8; i++)
+            for (int i=1; i<24; i++)
             {
                 Vector2Int index = boardPosition + offset*i;
-                if (index.x > 7 || index.y > 7 || index.x < 0 || index.y < 0)
+                if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
                 {
                     break;
                 }
-                else if (board[index.y*8+index.x] !=null)
+                else if (board[index.y*23+index.x] !=null)
                 {
-                    if (board[index.y*8+index.x].color != color)
+                    if (board[index.y*23+index.x].color != color)
                     {
                         moves.Add(index);
                     }
@@ -305,13 +305,13 @@ public class Piece : MonoBehaviour
         foreach(Vector2Int offset in offsets)
         {
             Vector2Int index = boardPosition + offset;
-            if (index.x > 7 || index.y > 7 || index.x < 0 || index.y < 0)
+            if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
             {
                 continue;
             }
-            else if (board[index.y*8+index.x] !=null)
+            else if (board[index.y*24+index.x] !=null)
             {
-                if (board[index.y*8+index.x].color == color)
+                if (board[index.y*24+index.x].color == color)
                 {
                     continue;
                 }
