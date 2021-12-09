@@ -14,7 +14,7 @@ public class GenerateBoard : MonoBehaviour
         GeneratePieces();
     }
 
-    void GenerateTiles() //Generates board tiles
+    public void GenerateTiles() //Generates board tiles
     {
         GameObject board = new GameObject("Board tiles");
         board.transform.parent = transform;
@@ -34,9 +34,10 @@ public class GenerateBoard : MonoBehaviour
         board.transform.localScale = board.transform.localScale * 0.4f;
     }
 
-    void GeneratePieces()
+    public void GeneratePieces()
     {
         GameObject board = new GameObject("Board Pieces");
+       
         board.transform.parent = transform;
         for (int y=0; y<24; y++)
         {
@@ -45,15 +46,16 @@ public class GenerateBoard : MonoBehaviour
                 if (y > 2 && y < 21)
                 {
                     //add piece as null to gamemanager pieces
-                    GameManager.current.pieces[y*1+x] = null;
+                    GameManager.current.pieces[y*24+x] = null;
                     continue;
                 }
                 
                 Piece piece = new GameObject("piece").AddComponent<Piece>();
+                piece.tag = "pieces";
                 piece.Initialize(new Vector2(x, y));
                 piece.transform.parent = board.transform;
                 piece.transform.localPosition = new Vector3(x * 0.4f- 5.1f, y * 0.4f - 4.7f, -1);
-                GameManager.current.pieces[y*24+x] = piece;
+                GameManager.current.pieces[y * 24 + x] = piece;
             }
         }
     }

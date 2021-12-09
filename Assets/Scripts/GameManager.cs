@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,50 +12,132 @@ public class GameManager : MonoBehaviour
     Piece selectedPiece;
     List<Vector2Int> possiblePlayerMoves;
     bool isPlayerTurn;
-    bool isPlayerWhite; //0 is white
+    bool isPlayerWhite = true; //0 is white
+    bool isAiVsMode; // true = ai vs ai
 
     Stack<Move> undoMoves;
     Move bestNegamaxMove;
     float boardEvaluationForPlayer = 0;
+    bool booleanHasChange = false;
+
     // Start is called before the first frame update
     void Start()
     {
         current = this;
         pieces = new Piece[576];
         tiles = new GameObject[576];
-        isPlayerWhite = true;
         isPlayerTurn = isPlayerWhite;
         undoMoves = new Stack<Move>();
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+
+    public void AIvsAI(bool isAiVsAiOn)
+    {
+        if (isAiVsAiOn)
+        {
+            isAiVsMode = true;
+            booleanHasChange = true;
+        }
+    }
+
+    public void PlayerPlaysWhite(bool playerWhite)
+    {
+        if (playerWhite)
+        {
+            isPlayerWhite = true;
+            isAiVsMode = false;
+            booleanHasChange = true;
+        }
+    }
+
+    public void PlayerPlaysBlack(bool playerBlack)
+    {
+        if (playerBlack)
+        {
+            isPlayerWhite = false;
+            isAiVsMode = false;
+            booleanHasChange = true;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (isPlayerTurn)
+        if(booleanHasChange )
         {
-            if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
+            GameObject[] pieces = GameObject.FindGameObjectsWithTag("pieces");
+            for (int i = 0; i < pieces.Length; i++)
             {
-                Debug.Log("CheckMate on Player");
+                Destroy(pieces[i]);
             }
-            else if (!HasPlayableMoves(isPlayerWhite))
-            {
-                Debug.Log("StaleMate");
-            }
-            PlayerMove(isPlayerWhite);
+            GameObject board = GameObject.FindGameObjectWithTag("Board");
+            GenerateBoard gb = board.GetComponent<GenerateBoard>();
+            gb.GeneratePieces();
+            booleanHasChange = false;
         }
-        else
+
+        if (isAiVsMode)
         {
-            if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
+            if (isPlayerTurn)
             {
-                Debug.Log("CheckMate on AI");
+                if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
+                {
+                    Debug.Log("CheckMate on Player");
+                }
+                else if (!HasPlayableMoves(isPlayerWhite))
+                {
+                    Debug.Log("StaleMate");
+                }
+                AIMove(isPlayerWhite);
+                //PlayerMove(!isPlayerWhite);
+                isPlayerTurn = !isPlayerTurn;
             }
-            else if (!HasPlayableMoves(!isPlayerWhite))
+            else
             {
-                Debug.Log("StaleMate");
+                if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
+                {
+                    Debug.Log("CheckMate on AI");
+                }
+                else if (!HasPlayableMoves(!isPlayerWhite))
+                {
+                    Debug.Log("StaleMate");
+                }
+                AIMove(!isPlayerWhite);
+                //PlayerMove(!isPlayerWhite);
+                isPlayerTurn = !isPlayerTurn;
             }
-            AIMove(!isPlayerWhite);
-            //PlayerMove(!isPlayerWhite);
-            isPlayerTurn = !isPlayerTurn;
+        } else
+        {
+            if (isPlayerTurn)
+            {
+                if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
+                {
+                    Debug.Log("CheckMate on Player");
+                }
+                else if (!HasPlayableMoves(isPlayerWhite))
+                {
+                    Debug.Log("StaleMate");
+                }
+                PlayerMove(isPlayerWhite);
+            }
+            else
+            {
+                if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
+                {
+                    Debug.Log("CheckMate on AI");
+                }
+                else if (!HasPlayableMoves(!isPlayerWhite))
+                {
+                    Debug.Log("StaleMate");
+                }
+                AIMove(!isPlayerWhite);
+                //PlayerMove(!isPlayerWhite);
+                isPlayerTurn = !isPlayerTurn;
+            }
         }
     }
     
@@ -69,7 +152,7 @@ public class GameManager : MonoBehaviour
 
     void AIMove(bool aiColor)
     {
-        Negamax(4, aiColor, Mathf.NegativeInfinity, Mathf.Infinity);
+        Negamax(2, aiColor, Mathf.NegativeInfinity, Mathf.Infinity);
         //GenerateAllMovesForColor(aiColor);
         List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
         listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
@@ -131,9 +214,9 @@ public class GameManager : MonoBehaviour
 
     Vector2Int GetMousePosition() //returns mouse position
     {
-        Vector3 mousePosition = 0.4f * Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        int positionX = Mathf.CeilToInt(mousePosition.x) + 3;
-        int positionY = Mathf.CeilToInt(mousePosition.y)+ 3;
+        Vector3 mousePosition =  new Vector3((Camera.main.ScreenToWorldPoint(Input.mousePosition).x * 2.5f) + 13.5f, (Camera.main.ScreenToWorldPoint(Input.mousePosition).y * 2.5f) + 12.5f, Camera.main.ScreenToWorldPoint(Input.mousePosition).z);
+        int positionX = (int)mousePosition.x; 
+        int positionY = (int)mousePosition.y;
         return new Vector2Int(positionX, positionY);
     }
 
@@ -149,7 +232,7 @@ public class GameManager : MonoBehaviour
             else
             {
                 SpriteRenderer sprRenderer = tiles[tile.y*24+tile.x].GetComponent<SpriteRenderer>();
-                sprRenderer.sprite = (((tile.y*24+tile.x)%2)==0) ? Resources.Load<Sprite>("blackTile") : Resources.Load<Sprite>("whiteTile");
+                sprRenderer.sprite = ((((tile.y)+tile.x)%2)==0) ? Resources.Load<Sprite>("blackTile") : Resources.Load<Sprite>("whiteTile");
             }
         }
     }
@@ -167,11 +250,11 @@ public class GameManager : MonoBehaviour
 
     Piece GetPieceViaPosition(Vector2Int position)
     {
-        if (position.x < 0 || position.x > 24 || position.y < 0 || position.y > 24)
+        if (position.x < 0 || position.x > 23 || position.y < 0 || position.y > 23)
         {
             return null;
         }
-        Piece temp = pieces[position.y * 1 + position.x];
+        Piece temp = pieces[position.y * 24 + position.x];
         return temp;
     }
     void PlayMove(bool isPermanent, Move move, List<Vector2Int> possibleMoves, bool IsPlayersPurposefulMove) //plays move,
@@ -330,7 +413,7 @@ public class GameManager : MonoBehaviour
             RemoveIllegalMoves(whichColor, pieceMoves, piece);
             foreach(Vector2Int move in pieceMoves)
             {
-                Move newMove = new Move(piece, pieces[move.y * 1 + move.x], move);
+                Move newMove = new Move(piece, pieces[move.y * 24 + move.x], move);
                 possibleMoves.Add(newMove);
             }
         }
@@ -424,22 +507,22 @@ public class GameManager : MonoBehaviour
         {
             if (move.attackedPieceBP.x > move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x - 1];
+                Piece rook = pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x - 1];
                 rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f + 1, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x - 1] = null;//set index position
-                pieces[move.movingPieceBP.y * 1 + move.movingPieceBP.x + 3] = rook;
+                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x - 1] = null;//set index position
+                pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x + 3] = rook;
                 //set board Position
                 rook.boardPosition = new Vector2Int(move.movingPieceBP.x + 3, move.movingPieceBP.y);
                 rook.amountMoved -= 1;
             }
             else if (move.attackedPieceBP.x < move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x + 1];
+                Piece rook = pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x + 1];
                 rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f - 2, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x + 1] = null;//set index position
-                pieces[move.movingPieceBP.y * 1 + move.movingPieceBP.x - 4] = rook;
+                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x + 1] = null;//set index position
+                pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x - 4] = rook;
                 //set board Position
                 rook.boardPosition = new Vector2Int(move.movingPieceBP.x - 4, move.movingPieceBP.y);
                 rook.amountMoved -= 1;
@@ -447,8 +530,8 @@ public class GameManager : MonoBehaviour
         }
         attackingPiece.gameObject.transform.position = 0.4f * new Vector3(move.movingPieceBP.x - 12.7f, move.movingPieceBP.y - 11.7f, -1);
         //set index position
-        pieces[move.movingPieceBP.y * 1 + move.movingPieceBP.x] = attackingPiece;//set index position
-        pieces[move.attackedPieceBP.y * 1 + move.attackedPieceBP.x] = temp;
+        pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x] = attackingPiece;//set index position
+        pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x] = temp;
         //set board Position
         attackingPiece.boardPosition = new Vector2Int(move.movingPieceBP.x, move.movingPieceBP.y);
         if (attackingPiece.boardPosition.y == attackingPiece.startingBoardPosition.y)
@@ -494,7 +577,7 @@ public class GameManager : MonoBehaviour
         {
             for (int x=0; x<24; x++)
             {
-                Piece piece = pieces[y*8+x];
+                Piece piece = pieces[y*24+x];
                 if (piece != null)
                 {
                     int pType = piece.pieceType;
