@@ -11,17 +11,19 @@ public class Piece : MonoBehaviour
 
     public Vector2Int boardPosition;
     public Vector2Int startingBoardPosition;
+
     public void Initialize(Vector2 xy)
     {
         boardPosition = new Vector2Int((int)xy.x, (int)xy.y);
         startingBoardPosition = boardPosition;
         SpriteRenderer sprRenderer = gameObject.AddComponent<SpriteRenderer>();
-       // int index = (int)((xy.y * 24) + xy.x);
+        // int index = (int)((xy.y * 24) + xy.x);
         if (xy.y < 3)
         {
             color = true;
         }
-        else{
+        else
+        {
             color = false;
         }
 
@@ -45,11 +47,11 @@ public class Piece : MonoBehaviour
                 {
                     pieceType = 4; //bishops
                 }
-                else if(xy.x == 11 || xy.x == 12)
+                else if (xy.x == 11 || xy.x == 12)
                 {
                     pieceType = 9; //champions
                 }
-                else if(xy.x == 22)
+                else if (xy.x == 22)
                 {
                     pieceType = 12; //falcons
                 }
@@ -88,7 +90,7 @@ public class Piece : MonoBehaviour
                 {
                     pieceType = 2; //rooks
                 }
-                else if (xy.x == 1) 
+                else if (xy.x == 1)
                 {
                     pieceType = 16; //gold general
                 }
@@ -127,17 +129,17 @@ public class Piece : MonoBehaviour
                     pieceType = 6; //queens
 
                 }
-                else if (xy.x == 3 || xy.x == 4 || xy.x == 5 || xy.x == 2 || xy.x == 20 || xy.x == 19 || xy.x == 21 || xy.x == 18 )
+                else if (xy.x == 3 || xy.x == 4 || xy.x == 5 || xy.x == 2 || xy.x == 20 || xy.x == 19 || xy.x == 21 || xy.x == 18)
                 {
                     pieceType = 19; //ultima pawns
                 }
             }
         }
-        
+
 
         if (color)
         {
-           switch (pieceType)
+            switch (pieceType)
             {
                 case 0:
                     return;
@@ -592,7 +594,6 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
     }
 
     List<Vector2Int> SingleLongMoves(Piece[] board)
@@ -634,7 +635,6 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
     }
 
     List<Vector2Int> LongMoves(Piece[] board)
@@ -665,7 +665,8 @@ public class Piece : MonoBehaviour
                 }
             }
             return moves;
-        } else
+        }
+        else
         {
             Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(0, 1),
             new Vector2Int(1, 0), new Vector2Int(-1, 0)};
@@ -692,19 +693,111 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
+    }
+
+    public int PromotionPieceType()
+    {
+        MovePlays mp = new MovePlays();
+        GameManager gm = GameManager.current;
+        if (!gm.isAiVsMode)
+        {
+            if (gm.isPlayerAI)
+            {
+                switch (mp.MoveFlagAI())
+                {
+                    case MovePlays.Flag.PromoteToRook:
+                        gm.promotePawnToRookAI();
+                        return 2;
+                    case MovePlays.Flag.PromoteToKnight:
+                        gm.promotePawnToKnightAI();
+                        return 3;
+                    case MovePlays.Flag.PromoteToBishop:
+                        gm.promotePawnToBishopAI();
+                        return 4;
+                    case MovePlays.Flag.PromoteToQueen:
+                        gm.promotePawnToQueenAI();
+                        return 6;
+                    default:
+                        return 0;
+                }
+            }
+            else
+            {
+                switch (mp.MoveFlagPlayer)
+                {
+                    case MovePlays.Flag.PromoteToRook:
+                        gm.promotePawnToRook();
+                        return 2;
+                    case MovePlays.Flag.PromoteToKnight:
+                        gm.promotePawnToKnight();
+                        return 3;
+                    case MovePlays.Flag.PromoteToBishop:
+                        gm.promotePawnToBishop();
+                        return 4;
+                    case MovePlays.Flag.PromoteToQueen:
+                        gm.promotePawnToQueen();
+                        return 6;
+                    default:
+                        return 0;
+                }
+            }
+        } else
+        {
+            if (gm.isPlayerAI)
+            {
+                switch (mp.MoveFlagAI())
+                {
+                    case MovePlays.Flag.PromoteToRook:
+                        gm.promotePawnToRookAI();
+                        return 2;
+                    case MovePlays.Flag.PromoteToKnight:
+                        gm.promotePawnToKnightAI();
+                        return 3;
+                    case MovePlays.Flag.PromoteToBishop:
+                        gm.promotePawnToBishopAI();
+                        return 4;
+                    case MovePlays.Flag.PromoteToQueen:
+                        gm.promotePawnToQueenAI();
+                        return 6;
+                    default:
+                        return 0;
+                }
+            }
+            else
+            {
+                switch (mp.MoveFlagPlayer)
+                {
+                    case MovePlays.Flag.PromoteToRook:
+                        gm.promotePawnToRook();
+                        return 2;
+                    case MovePlays.Flag.PromoteToKnight:
+                        gm.promotePawnToKnight();
+                        return 3;
+                    case MovePlays.Flag.PromoteToBishop:
+                        gm.promotePawnToBishop();
+                        return 4;
+                    case MovePlays.Flag.PromoteToQueen:
+                        gm.promotePawnToQueen();
+                        return 6;
+                    default:
+                        return 0;
+                }
+            }
+        }
     }
 
     List<Vector2Int> PawnMoves(Piece[] board)
     {
         Vector2Int[] offsets = new Vector2Int[] { new Vector2Int(-1, 0), new Vector2Int(1, 0) };
         List<Vector2Int> moves = new List<Vector2Int>();
-        if (boardPosition.y == 24 || boardPosition.y == 0)
+        if (boardPosition.y == 23 || boardPosition.y == 0)
         {
+            PromotionPieceType();
             return moves;
         }
         int colorType = (color) ? 1 : -1;
         Vector2Int pawnMove = new Vector2Int(0, 1);
+        Vector2Int[] Moons = new Vector2Int[] { new Vector2Int(0, 1) };
         Vector2Int index;
         foreach (Vector2Int offset in offsets)
         {
@@ -719,21 +812,31 @@ public class Piece : MonoBehaviour
             }
         }
 
-        index = boardPosition + pawnMove * colorType;
-        if (board[index.y * 24 + index.x])
+        foreach (Vector2Int Moon in Moons)
         {
-            return moves;
-        }
-        moves.Add(index);
-
-        if (amountMoved == 0)
-        {
-            index = boardPosition + 2 * pawnMove * colorType;
-            if (board[index.y * 24 + index.x])
+            index = boardPosition + Moon * colorType;
+            if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
             {
-                return moves;
+                continue;
             }
-            moves.Add(index);
+            else
+            {
+                if (board[index.y * 24 + index.x])
+                {
+                    return moves;
+                }
+                moves.Add(index);
+
+                if (amountMoved == 0)
+                {
+                    index = boardPosition + 2 * pawnMove * colorType;
+                    if (board[index.y * 24 + index.x])
+                    {
+                        return moves;
+                    }
+                    moves.Add(index);
+                }
+            }
         }
         return moves;
     }
@@ -895,7 +998,6 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
     }
 
     List<Vector2Int> GoldMoves(Piece[] board)
@@ -943,8 +1045,8 @@ public class Piece : MonoBehaviour
     {
         if (color)
         {
-            Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(1, 0), new Vector2Int(2, 0),
-            new Vector2Int(3, 0), new Vector2Int(4, 0)};
+            Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(0, 1), new Vector2Int(0, 2),
+            new Vector2Int(0, 3), new Vector2Int(0, 4)};
             List<Vector2Int> moves = new List<Vector2Int>();
             foreach (Vector2Int offset in offsets)
             {
@@ -962,8 +1064,8 @@ public class Piece : MonoBehaviour
             return moves;
         } else
         {
-            Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(-1, 0), new Vector2Int(-2, 0),
-            new Vector2Int(-3, 0), new Vector2Int(-4, 0)};
+            Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(0, -1), new Vector2Int(0, -2),
+            new Vector2Int(0, -3), new Vector2Int(0, -4)};
             List<Vector2Int> moves = new List<Vector2Int>();
             foreach (Vector2Int offset in offsets)
             {
@@ -980,7 +1082,6 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
     }
 
     List<Vector2Int> KnightMoves(Piece[] board)
@@ -1060,7 +1161,6 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
     }
 
     List<Vector2Int> FalconMoves(Piece[] board)
@@ -1116,7 +1216,6 @@ public class Piece : MonoBehaviour
             }
             return moves;
         }
-        return null;
     }
 
     List<Vector2Int> BishopMoves(Piece[] board)
@@ -1191,5 +1290,6 @@ public class Piece : MonoBehaviour
         return moves;
     }
 
-
 }
+
+

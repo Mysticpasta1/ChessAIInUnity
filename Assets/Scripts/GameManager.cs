@@ -1,24 +1,40 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.Events;
+using static System.Math;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager current;
     public Piece []pieces;
     public GameObject []tiles;
-
+    public Sprite queen, knight, bishop, rook;
+    public Piece lastSeletedPiece;
     Piece selectedPiece;
     List<Vector2Int> possiblePlayerMoves;
     bool isPlayerTurn;
-    bool isPlayerWhite = true; //0 is white
-    bool isAiVsMode; // true = ai vs ai
-
+    public bool isPlayerWhite = true; //0 is white
+    public bool isAiVsMode; // true = ai vs ai
+    public bool isPlayerVsPlayer;
     Stack<Move> undoMoves;
     Move bestNegamaxMove;
     float boardEvaluationForPlayer = 0;
     bool booleanHasChange = false;
+    int currentIterativeSearchDepth;
+    bool abortSearch;
+    private static int immediateMateScore = 100000;
+    private float bestEval;
+    public GameObject canvas;
+    public bool isPlayerAI;
+    private Move lastNegamaxMove;
+    private Piece lastMovedPiece;
+
+    private event System.Action<Move> onSearchComplete;
 
     // Start is called before the first frame update
     void Start()
@@ -35,11 +51,23 @@ public class GameManager : MonoBehaviour
         Application.Quit();
     }
 
+    public void PlayerVsPlayer(bool playerVsPlayer)
+    {
+        if(playerVsPlayer)
+        {
+            isAiVsMode = false;
+            isPlayerVsPlayer = true;
+            isPlayerWhite = true;
+            booleanHasChange = true;
+        }
+    }
+
     public void AIvsAI(bool isAiVsAiOn)
     {
         if (isAiVsAiOn)
         {
             isAiVsMode = true;
+            isPlayerVsPlayer = false;
             booleanHasChange = true;
         }
     }
@@ -50,6 +78,7 @@ public class GameManager : MonoBehaviour
         {
             isPlayerWhite = true;
             isAiVsMode = false;
+            isPlayerVsPlayer = false;
             booleanHasChange = true;
         }
     }
@@ -60,6 +89,7 @@ public class GameManager : MonoBehaviour
         {
             isPlayerWhite = false;
             isAiVsMode = false;
+            isPlayerVsPlayer = false;
             booleanHasChange = true;
         }
     }
@@ -79,36 +109,71 @@ public class GameManager : MonoBehaviour
             gb.GeneratePieces();
             booleanHasChange = false;
         }
-
-        if (isAiVsMode)
+        if (!isPlayerVsPlayer)
         {
-            if (isPlayerTurn)
+            if (isAiVsMode)
             {
-                if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
+                if (isPlayerTurn)
                 {
-                    Debug.Log("CheckMate on Player");
+                    if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
+                    {
+                        Debug.Log("CheckMate on Player");
+                    }
+                    else if (!HasPlayableMoves(isPlayerWhite))
+                    {
+                        Debug.Log("StaleMate");
+                    }
+                    isPlayerAI = true;
+                    AIMove(isPlayerWhite);
+                    //PlayerMove(!isPlayerWhite);
+                    isPlayerTurn = !isPlayerTurn;
                 }
-                else if (!HasPlayableMoves(isPlayerWhite))
+                else
                 {
-                    Debug.Log("StaleMate");
+                    if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
+                    {
+                        Debug.Log("CheckMate on AI");
+                    }
+                    else if (!HasPlayableMoves(!isPlayerWhite))
+                    {
+                        Debug.Log("StaleMate");
+                    }
+                    isPlayerAI = true;
+                    AIMove(!isPlayerWhite);
+                    //PlayerMove(!isPlayerWhite);
+                    isPlayerTurn = !isPlayerTurn;
                 }
-                AIMove(isPlayerWhite);
-                //PlayerMove(!isPlayerWhite);
-                isPlayerTurn = !isPlayerTurn;
             }
             else
             {
-                if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
+                if (isPlayerTurn)
                 {
-                    Debug.Log("CheckMate on AI");
+                    if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
+                    {
+                        Debug.Log("CheckMate on Player");
+                    }
+                    else if (!HasPlayableMoves(isPlayerWhite))
+                    {
+                        Debug.Log("StaleMate");
+                    }
+                    isPlayerAI = false;
+                    PlayerMove(isPlayerWhite);
                 }
-                else if (!HasPlayableMoves(!isPlayerWhite))
+                else
                 {
-                    Debug.Log("StaleMate");
+                    if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
+                    {
+                        Debug.Log("CheckMate on AI");
+                    }
+                    else if (!HasPlayableMoves(!isPlayerWhite))
+                    {
+                        Debug.Log("StaleMate");
+                    }
+                    isPlayerAI = true;
+                    AIMove(!isPlayerWhite);
+                    //PlayerMove(!isPlayerWhite);
+                    isPlayerTurn = !isPlayerTurn;
                 }
-                AIMove(!isPlayerWhite);
-                //PlayerMove(!isPlayerWhite);
-                isPlayerTurn = !isPlayerTurn;
             }
         } else
         {
@@ -122,6 +187,7 @@ public class GameManager : MonoBehaviour
                 {
                     Debug.Log("StaleMate");
                 }
+                isPlayerAI = false;
                 PlayerMove(isPlayerWhite);
             }
             else
@@ -134,13 +200,220 @@ public class GameManager : MonoBehaviour
                 {
                     Debug.Log("StaleMate");
                 }
-                AIMove(!isPlayerWhite);
-                //PlayerMove(!isPlayerWhite);
-                isPlayerTurn = !isPlayerTurn;
+                isPlayerAI = false;
+                PlayerMove(!isPlayerWhite);
             }
         }
     }
-    
+
+    public void promotePawnToQueen()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+        
+        if(lastSeletedPiece == null)
+        {
+            return;
+        }
+        if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23))
+        {
+            SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
+            if (lastSeletedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
+                lastSeletedPiece.pieceType = 6;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("queen");
+                lastSeletedPiece.pieceType = 6;
+            }
+
+        }
+    }
+
+    public void promotePawnToKnight()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+        if (lastSeletedPiece == null)
+        {
+            return;
+        }
+        if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23))
+        {
+            SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
+            if (lastSeletedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
+                lastSeletedPiece.pieceType = 3;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("knight");
+                lastSeletedPiece.pieceType = 3;
+            }
+
+        }
+    }
+    public void promotePawnToBishop()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+        if (lastSeletedPiece == null)
+        {
+            return;
+        }
+        if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23)) {
+                SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
+                if (lastSeletedPiece.color)
+                {
+                    sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
+                    lastSeletedPiece.pieceType = 4;
+                }
+                else
+                {
+                    sprRenderer.sprite = Resources.Load<Sprite>("bishop");
+                    lastSeletedPiece.pieceType = 4;
+                }
+            
+        }
+    }
+    public void promotePawnToRook()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+        if (lastSeletedPiece == null)
+        {
+            return;
+        }
+        if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23)) {
+            SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
+            if (lastSeletedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
+                lastSeletedPiece.pieceType = 2;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("rook");
+                lastSeletedPiece.pieceType = 2;
+            }
+        }
+    }
+
+    public void promotePawnToQueenAI()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+
+
+
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+
+        Piece piece = lastMovedPiece;
+
+        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+        if (lastMovedPiece.color)
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
+            lastMovedPiece.pieceType = 6;
+        }
+        else
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("queen");
+            lastMovedPiece.pieceType = 6;
+        }
+    }
+
+    public void promotePawnToBishopAI()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+
+
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+
+        Piece piece = lastMovedPiece;
+
+        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+        if (lastMovedPiece.color)
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
+            lastMovedPiece.pieceType = 4;
+        }
+        else
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("bishop");
+            lastMovedPiece.pieceType = 4;
+        }
+    }
+
+
+    public void promotePawnToRookAI()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+
+        Piece piece = lastMovedPiece;
+        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+        if (lastMovedPiece.color)
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
+            lastMovedPiece.pieceType = 2;
+        }
+        else
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("rook");
+            lastMovedPiece.pieceType = 2;
+        } 
+    }
+
+    public void promotePawnToKnightAI()
+    {
+        Vector2Int mousePosition = GetMousePosition();
+
+        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        {
+            return;
+        }
+
+        Piece piece = lastMovedPiece;
+
+        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+        if (lastMovedPiece.color)
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
+            lastMovedPiece.pieceType = 3;
+        }
+        else
+        {
+            sprRenderer.sprite = Resources.Load<Sprite>("knight");
+            lastMovedPiece.pieceType = 3;
+        }
+    }
+
     void PlayerMove(bool whoseTurn)
     {
         PickUpPiece(whoseTurn);
@@ -152,7 +425,8 @@ public class GameManager : MonoBehaviour
 
     void AIMove(bool aiColor)
     {
-        Negamax(2, aiColor, Mathf.NegativeInfinity, Mathf.Infinity);
+        //Negamax(2, aiColor, Mathf.NegativeInfinity, Mathf.Infinity);
+        StartSearch(aiColor);
         //GenerateAllMovesForColor(aiColor);
         List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
         listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
@@ -175,6 +449,7 @@ public class GameManager : MonoBehaviour
                 {
                     if (selectedPiece.color != whoseTurn)
                     {
+                        lastSeletedPiece = selectedPiece;
                         selectedPiece = null;
                         return;
                     }
@@ -182,6 +457,7 @@ public class GameManager : MonoBehaviour
                     RemoveIllegalMoves(whoseTurn, possiblePlayerMoves, selectedPiece);
                     if(possiblePlayerMoves.Count ==0)
                     {
+                        lastSeletedPiece = selectedPiece;
                         selectedPiece = null;
                         return;
                     }
@@ -245,6 +521,7 @@ public class GameManager : MonoBehaviour
         }
         selectedPiece.gameObject.transform.position = 0.4f * new Vector3(selectedPiece.boardPosition.x*1f-12.7f, selectedPiece.boardPosition.y*1f-11.7f, -1f);
         ColorTiles(possiblePlayerMoves, true);
+        lastSeletedPiece = selectedPiece;
         selectedPiece = null;
     }
 
@@ -345,15 +622,138 @@ public class GameManager : MonoBehaviour
         pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x] = null;
         //set board Position
         attackingPiece.boardPosition = new Vector2Int(move.attackedPieceBP.x, move.attackedPieceBP.y);
-        
+        lastMovedPiece = attackingPiece;
 
         if (isPermanent && IsPlayersPurposefulMove)
         {
+            lastSeletedPiece = selectedPiece;
             selectedPiece = null;
             isPlayerTurn = !isPlayerTurn;
         }
 
         
+    }
+
+    public void StartSearch(bool color)
+    {
+        Move bestMove = new Move();
+        List<Move> possibleMoves = GenerateAllMovesForColor(color);
+        // Initialize search settings
+        float bestEvalThisIteration = 0.0f;
+        Move bestMoveThisIteration = bestMove;
+
+        currentIterativeSearchDepth = 0;
+        abortSearch = false;
+
+        // Iterative deepening. This means doing a full search with a depth of 1, then with a depth of 2, and so on.
+        // This allows the search to be aborted at any time, while still yielding a useful result from the last search.
+
+        int targetDepth = 50;
+
+        for (int searchDepth = 1; searchDepth <= targetDepth; searchDepth++)
+        {
+            SearchMoves(1, 0, color, -999999999,  999999999);
+            if (abortSearch)
+            {
+                break;
+            }
+            else
+            {
+                currentIterativeSearchDepth = searchDepth;
+                bestMove = bestMoveThisIteration;
+                bestEval = bestEvalThisIteration;
+
+                // Exit search if found a mate
+                if (IsMateScore((int) bestEval))
+                {
+                    break;
+                }
+            }
+        }
+        onSearchComplete?.Invoke(bestMove);
+    }
+
+    public static bool IsMateScore(int score)
+    {
+        const int maxMateDepth = 1000;
+        return System.Math.Abs(score) > immediateMateScore - maxMateDepth;
+    }
+
+    int SearchMoves(int depth, int plyFromRoot, bool color, int alpha, int beta)
+    {
+        float score = Mathf.NegativeInfinity;
+        if (depth != 0)
+        {
+            Move tempBestMove = new Move();
+            int eval;
+            List<Move> possibleMoves = GenerateAllMovesForColor(color);
+            if (abortSearch)
+            {
+                return 0;
+            }
+
+            if (plyFromRoot > 0)
+            {
+                // Skip this position if a mating sequence has already been found earlier in
+                // the search, which would be shorter than any mate we could find from here.
+                // This is done by observing that alpha can't possibly be worse (and likewise
+                // beta can't  possibly be better) than being mated in the current position.
+                alpha = Max(alpha, -immediateMateScore + plyFromRoot);
+                beta = Min(beta, immediateMateScore - plyFromRoot);
+                if (alpha >= beta)
+                {
+                    return alpha;
+                }
+            }
+
+            // Detect checkmate and stalemate when no legal moves are available
+            if (possibleMoves.Count == 0)
+            {
+                if (IsCheck(color))
+                {
+                    int mateScore = immediateMateScore - plyFromRoot;
+                    return -mateScore;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            foreach (Move move in possibleMoves)
+            {
+                List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
+                listOfMovesTemp.Add(move.attackedPieceBP);
+                PlayMove(false, move, listOfMovesTemp, false);
+                eval = -SearchMoves(depth - 1, plyFromRoot + 1, !color, -beta, -alpha);
+                if (eval > score)
+                {
+                    score = eval;
+                    tempBestMove = move;
+                }
+                UndoPlayMove();
+                // Move was *too* good, so opponent won't allow this position to be reached
+                // (by choosing a different move earlier on). Skip remaining moves.
+                if (eval >= beta)
+                {
+                    bestNegamaxMove = tempBestMove;
+                    return beta;
+                }
+
+                // Found a new best move in this position
+                if (eval > alpha)
+                {
+                    alpha = eval;
+                }
+            }
+            bestNegamaxMove = tempBestMove;
+            return alpha;
+        } else
+        {
+            score = EvaluateBoard(color);
+            lastNegamaxMove = bestNegamaxMove;
+            return (int)score;
+        }
     }
 
     float Negamax(int depth, bool color, float alpha, float beta)
@@ -570,7 +970,7 @@ public class GameManager : MonoBehaviour
         return boardEvaluationForPlayer + PieceSquareEvaluation()/100f;
     }
 
-    float PieceSquareEvaluation() //positive is white
+    public float PieceSquareEvaluation() //positive is white
     {
         float evaluation=0;
         for (int y=0; y<24; y++)
