@@ -6,7 +6,8 @@ public class GenerateBoard : MonoBehaviour
 {
     public Sprite blackTile;
     public Sprite whiteTile;
-
+    public GameObject zoom;
+    public GameObject square;
     // Start is called before the first frame update
     void Start()
     {
@@ -57,6 +58,16 @@ public class GenerateBoard : MonoBehaviour
                 piece.transform.localPosition = new Vector3(x * 0.4f- 5.1f, y * 0.4f - 4.7f, -1);
                 GameManager.current.pieces[y * 24 + x] = piece;
             }
+        }
+        GameObject[] pieces = GameObject.FindGameObjectsWithTag("pieces");
+        foreach (GameObject thing in pieces)
+        {
+            thing.AddComponent<BoxCollider2D>();
+            thing.AddComponent<Zoom>();
+            thing.GetComponent<BoxCollider2D>().size = new Vector2(0.4f, 0.4f);
+            thing.GetComponent<BoxCollider2D>().offset = new Vector2(0.01f, 0.02f);
+            thing.GetComponent<Zoom>().zoom = zoom;
+            thing.GetComponent<Zoom>().square = square;
         }
     }
 }

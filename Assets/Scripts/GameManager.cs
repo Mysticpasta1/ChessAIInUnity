@@ -7,13 +7,14 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using static System.Math;
+using System;
 
 public class GameManager : MonoBehaviour
 {
+    public enum Result { Playing, WhiteIsMated, BlackIsMated, Stalemate, FiftyMoveRule, InsufficientMaterial }
     public static GameManager current;
     public Piece []pieces;
     public GameObject []tiles;
-    public Sprite queen, knight, bishop, rook;
     public Piece lastSeletedPiece;
     Piece selectedPiece;
     List<Vector2Int> possiblePlayerMoves;
@@ -32,7 +33,11 @@ public class GameManager : MonoBehaviour
     public GameObject canvas;
     public bool isPlayerAI;
     private Move lastNegamaxMove;
+    Result gameResult;
     private Piece lastMovedPiece;
+    public int fiftyMoveCounter;
+    public bool isPlayerIsBlackMode;
+    internal bool toolTipsEnabled;
 
     private event System.Action<Move> onSearchComplete;
 
@@ -45,6 +50,16 @@ public class GameManager : MonoBehaviour
         isPlayerTurn = isPlayerWhite;
         undoMoves = new Stack<Move>();
     }
+
+    public void toolTipsEnable()
+    {
+         toolTipsEnabled = true;   
+    }
+    public void toolTipsDisable()
+    {
+        toolTipsEnabled = false;
+    }
+
 
     public void QuitGame()
     {
@@ -59,6 +74,8 @@ public class GameManager : MonoBehaviour
             isPlayerVsPlayer = true;
             isPlayerWhite = true;
             booleanHasChange = true;
+            isPlayerIsBlackMode = false;
+            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
         }
     }
 
@@ -69,6 +86,8 @@ public class GameManager : MonoBehaviour
             isAiVsMode = true;
             isPlayerVsPlayer = false;
             booleanHasChange = true;
+            isPlayerIsBlackMode = false;
+            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
         }
     }
 
@@ -80,6 +99,8 @@ public class GameManager : MonoBehaviour
             isAiVsMode = false;
             isPlayerVsPlayer = false;
             booleanHasChange = true;
+            isPlayerIsBlackMode = false;
+            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
         }
     }
 
@@ -91,13 +112,186 @@ public class GameManager : MonoBehaviour
             isAiVsMode = false;
             isPlayerVsPlayer = false;
             booleanHasChange = true;
+            isPlayerIsBlackMode = true;
+            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
+        }
+    }
+
+    public string getColor()
+    {
+        if(isPlayerWhite)
+        {
+            return "white";
+        }
+        else
+        {
+            return "black";
+        }
+    }
+
+    Result GetGameState(bool color)
+    {
+        var possibleMoves = GenerateAllMovesForColor(color);
+
+        if (possibleMoves.Count == 0 || bestNegamaxMove.Equals(possibleMoves[UnityEngine.Random.Range(0, 0)]))
+        {
+            // Look for mate/stalemate
+            if (IsCheck(color))
+            {
+                return color ? Result.WhiteIsMated : Result.BlackIsMated;
+            }
+            return Result.Stalemate;
+        }
+        
+        // Look for insufficient material (not all cases implemented yet)
+        int numPawns = Piece.getPieceFromInt(1, color).Length + Piece.getPieceFromInt(1, !color).Length;
+        int numRooks = Piece.getPieceFromInt(2, color).Length + Piece.getPieceFromInt(1, !color).Length;
+        int numQueens = Piece.getPieceFromInt(6, color).Length + Piece.getPieceFromInt(1, !color).Length;
+        int numKnights = Piece.getPieceFromInt(3, color).Length + Piece.getPieceFromInt(1, !color).Length;
+        int numBishops = Piece.getPieceFromInt(4, color).Length + Piece.getPieceFromInt(1, !color).Length;
+
+        if (numPawns + numRooks + numQueens == 0)
+        {
+            if (numKnights == 1 || numBishops == 1)
+            {
+                return Result.InsufficientMaterial;
+            }
+        }
+
+
+        // Fifty move rule
+        if (fiftyMoveCounter >= 100)
+        {
+            return Result.FiftyMoveRule;
+        }
+
+        return Result.Playing;
+    }
+
+    public void printGameResult(Result result)
+    {
+        if (!isPlayerVsPlayer)
+        {
+            if (isAiVsMode)
+            {
+                if (isPlayerTurn)
+                {
+                    if (Result.WhiteIsMated == result || Result.BlackIsMated == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
+                        Debug.Log("Game Over");
+                    }
+                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
+                        Debug.Log("Game Over");
+                    }
+                }
+                else
+                {
+                    if (Result.WhiteIsMated == result || Result.BlackIsMated == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
+                        Debug.Log("Game Over");
+                    }
+                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
+                        Debug.Log("Game Over");
+                    }
+                }
+            }
+            else
+            {
+                if (isPlayerTurn)
+                {
+                    if (Result.WhiteIsMated == result || Result.BlackIsMated == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " player is the winner";
+                        Debug.Log("Game Over");
+                    }
+                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs AI stalemate";
+                        Debug.Log("Game Over");
+                    }
+                }
+                else
+                {
+                    if (Result.WhiteIsMated == result || Result.BlackIsMated == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
+                        Debug.Log("Game Over");
+                    }
+                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    {
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs AI stalemate";
+                        Debug.Log("Game Over");
+
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (isPlayerTurn)
+            {
+                if (Result.WhiteIsMated == result || Result.BlackIsMated == result)
+                {
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " player is the winner";
+                    Debug.Log("Game Over");
+                    
+                }
+                else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                {
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs player stalemate";
+                    Debug.Log("Game Over");
+                }
+            }
+            else
+            {
+                if (Result.WhiteIsMated == result || Result.BlackIsMated == result)
+                {
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " player is the winner";
+                    Debug.Log("Game Over");
+                }
+                else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                {
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs player stalemate";
+                    Debug.Log("Game Over");
+                }
+            }
+        }
+    }
+
+    public bool isGameOver(Result result)
+    {
+        if(Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result || Result.WhiteIsMated == result || Result.BlackIsMated == result)
+        {
+            return true;
+        } else
+        {
+            return false;
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(booleanHasChange )
+        gameResult = GetGameState(isPlayerWhite);
+        if (booleanHasChange)
         {
             GameObject[] pieces = GameObject.FindGameObjectsWithTag("pieces");
             for (int i = 0; i < pieces.Length; i++)
@@ -108,38 +302,26 @@ public class GameManager : MonoBehaviour
             GenerateBoard gb = board.GetComponent<GenerateBoard>();
             gb.GeneratePieces();
             booleanHasChange = false;
+
         }
+
         if (!isPlayerVsPlayer)
         {
             if (isAiVsMode)
             {
                 if (isPlayerTurn)
                 {
-                    if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
-                    {
-                        Debug.Log("CheckMate on Player");
-                    }
-                    else if (!HasPlayableMoves(isPlayerWhite))
-                    {
-                        Debug.Log("StaleMate");
-                    }
                     isPlayerAI = true;
                     AIMove(isPlayerWhite);
+                    printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
                 }
                 else
                 {
-                    if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
-                    {
-                        Debug.Log("CheckMate on AI");
-                    }
-                    else if (!HasPlayableMoves(!isPlayerWhite))
-                    {
-                        Debug.Log("StaleMate");
-                    }
                     isPlayerAI = true;
                     AIMove(!isPlayerWhite);
+                    printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
                 }
@@ -148,58 +330,31 @@ public class GameManager : MonoBehaviour
             {
                 if (isPlayerTurn)
                 {
-                    if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
-                    {
-                        Debug.Log("CheckMate on Player");
-                    }
-                    else if (!HasPlayableMoves(isPlayerWhite))
-                    {
-                        Debug.Log("StaleMate");
-                    }
+                    printGameResult(gameResult);
                     isPlayerAI = false;
                     PlayerMove(isPlayerWhite);
                 }
                 else
                 {
-                    if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
-                    {
-                        Debug.Log("CheckMate on AI");
-                    }
-                    else if (!HasPlayableMoves(!isPlayerWhite))
-                    {
-                        Debug.Log("StaleMate");
-                    }
+                    printGameResult(gameResult);
                     isPlayerAI = true;
                     AIMove(!isPlayerWhite);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
                 }
             }
-        } else
+        }
+        else
         {
             if (isPlayerTurn)
             {
-                if (!HasPlayableMoves(isPlayerWhite) && IsCheck(isPlayerWhite))
-                {
-                    Debug.Log("CheckMate on Player");
-                }
-                else if (!HasPlayableMoves(isPlayerWhite))
-                {
-                    Debug.Log("StaleMate");
-                }
+                printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(isPlayerWhite);
             }
             else
             {
-                if (!HasPlayableMoves(!isPlayerWhite) && IsCheck(!isPlayerWhite))
-                {
-                    Debug.Log("CheckMate on AI");
-                }
-                else if (!HasPlayableMoves(!isPlayerWhite))
-                {
-                    Debug.Log("StaleMate");
-                }
+                printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(!isPlayerWhite);
             }
@@ -210,7 +365,7 @@ public class GameManager : MonoBehaviour
     {
         Vector2Int mousePosition = GetMousePosition();
 
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
@@ -239,7 +394,7 @@ public class GameManager : MonoBehaviour
     public void promotePawnToKnight()
     {
         Vector2Int mousePosition = GetMousePosition();
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
@@ -263,10 +418,11 @@ public class GameManager : MonoBehaviour
 
         }
     }
+
     public void promotePawnToBishop()
     {
         Vector2Int mousePosition = GetMousePosition();
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
@@ -292,7 +448,7 @@ public class GameManager : MonoBehaviour
     public void promotePawnToRook()
     {
         Vector2Int mousePosition = GetMousePosition();
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
@@ -321,23 +477,26 @@ public class GameManager : MonoBehaviour
 
 
 
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
 
         Piece piece = lastMovedPiece;
 
-        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-        if (lastMovedPiece.color)
+        if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
-            sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
-            lastMovedPiece.pieceType = 6;
-        }
-        else
-        {
-            sprRenderer.sprite = Resources.Load<Sprite>("queen");
-            lastMovedPiece.pieceType = 6;
+            SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+            if (lastMovedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
+                lastMovedPiece.pieceType = 6;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("queen");
+                lastMovedPiece.pieceType = 6;
+            }
         }
     }
 
@@ -346,23 +505,26 @@ public class GameManager : MonoBehaviour
         Vector2Int mousePosition = GetMousePosition();
 
 
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
 
         Piece piece = lastMovedPiece;
 
-        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-        if (lastMovedPiece.color)
+        if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
-            sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
-            lastMovedPiece.pieceType = 4;
-        }
-        else
-        {
-            sprRenderer.sprite = Resources.Load<Sprite>("bishop");
-            lastMovedPiece.pieceType = 4;
+            SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+            if (lastMovedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
+                lastMovedPiece.pieceType = 4;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("bishop");
+                lastMovedPiece.pieceType = 4;
+            }
         }
     }
 
@@ -371,46 +533,53 @@ public class GameManager : MonoBehaviour
     {
         Vector2Int mousePosition = GetMousePosition();
 
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
 
         Piece piece = lastMovedPiece;
-        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-        if (lastMovedPiece.color)
+
+        if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
-            sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
-            lastMovedPiece.pieceType = 2;
+            SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+            if (lastMovedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
+                lastMovedPiece.pieceType = 2;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("rook");
+                lastMovedPiece.pieceType = 2;
+            }
         }
-        else
-        {
-            sprRenderer.sprite = Resources.Load<Sprite>("rook");
-            lastMovedPiece.pieceType = 2;
-        } 
     }
 
     public void promotePawnToKnightAI()
     {
         Vector2Int mousePosition = GetMousePosition();
 
-        if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+        if (mousePosition.x < 0 || mousePosition.x > 24 || mousePosition.y < 0 || mousePosition.y > 24)
         {
             return;
         }
 
         Piece piece = lastMovedPiece;
 
-        SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-        if (lastMovedPiece.color)
+        if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
-            sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
-            lastMovedPiece.pieceType = 3;
-        }
-        else
-        {
-            sprRenderer.sprite = Resources.Load<Sprite>("knight");
-            lastMovedPiece.pieceType = 3;
+            SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
+            if (lastMovedPiece.color)
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
+                lastMovedPiece.pieceType = 3;
+            }
+            else
+            {
+                sprRenderer.sprite = Resources.Load<Sprite>("knight");
+                lastMovedPiece.pieceType = 3;
+            }
         }
     }
 
@@ -425,12 +594,54 @@ public class GameManager : MonoBehaviour
 
     void AIMove(bool aiColor)
     {
-        //Negamax(2, aiColor, Mathf.NegativeInfinity, Mathf.Infinity);
-        StartSearch(aiColor);
-        //GenerateAllMovesForColor(aiColor);
-        List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
-        listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
-        PlayMove(true, bestNegamaxMove, listOfMovesTemp, false);
+        int numberOfTurns = 0; 
+        if ((numberOfTurns % 3) >= 0)
+        {
+            if (aiColor)
+            {
+                if ((numberOfTurns % 3) == 0)
+                {
+                    RandomMoveGenerator(aiColor, 0);
+                    List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
+                    listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
+                    PlayMove(true, bestNegamaxMove, listOfMovesTemp, false);
+                    fiftyMoveCounter++;
+                    numberOfTurns++;
+                }
+                else
+                {
+                    StartSearch(aiColor);
+                    List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
+                    listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
+                    PlayMove(true, bestNegamaxMove, listOfMovesTemp, false);
+                    fiftyMoveCounter++;
+                    numberOfTurns++;
+
+                }
+            }
+            else
+            {
+                if ((numberOfTurns % 3) == 0)
+                {
+                    RandomMoveGenerator(aiColor, 0);
+                    List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
+                    listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
+                    PlayMove(true, bestNegamaxMove, listOfMovesTemp, false);
+                    fiftyMoveCounter++;
+                    numberOfTurns++;
+
+                }
+                else
+                {
+                    StartSearch(aiColor);
+                    List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
+                    listOfMovesTemp.Add(bestNegamaxMove.attackedPieceBP);
+                    PlayMove(true, bestNegamaxMove, listOfMovesTemp, false);
+                    fiftyMoveCounter++;
+                    numberOfTurns++;
+                }
+            }
+        }
     }
 
     void PickUpPiece(bool whoseTurn) //pickup piece player
@@ -488,7 +699,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    Vector2Int GetMousePosition() //returns mouse position
+    public Vector2Int GetMousePosition() //returns mouse position
     {
         Vector3 mousePosition =  new Vector3((Camera.main.ScreenToWorldPoint(Input.mousePosition).x * 2.5f) + 13.5f, (Camera.main.ScreenToWorldPoint(Input.mousePosition).y * 2.5f) + 12.5f, Camera.main.ScreenToWorldPoint(Input.mousePosition).z);
         int positionX = (int)mousePosition.x; 
@@ -553,6 +764,7 @@ public class GameManager : MonoBehaviour
         }
 
         Piece temp = move.attackedPiece;
+        Piece captured = move.attackedPiece;
         Piece attackingPiece = move.movingPiece;
         if (attackingPiece == null && isPermanent && temp == null)
         {
@@ -588,30 +800,38 @@ public class GameManager : MonoBehaviour
         }
         attackingPiece.hasMoved = true;
         attackingPiece.amountMoved += 1;
-        
-        if (attackingPiece.pieceType == 5 && Mathf.Abs(move.movingPieceBP.x-move.attackedPieceBP.x) >1)
+
+        if (captured != null)
+        {
+            if (attackingPiece.pieceType == 1 || captured.pieceType != 0)
+            {
+                fiftyMoveCounter = 0;
+            }
+        }
+
+        if (attackingPiece.pieceType == 5 && Mathf.Abs(move.movingPieceBP.x - move.attackedPieceBP.x) > 1)
         {
             if (move.attackedPieceBP.x > move.movingPieceBP.x)
             {
                 Piece rook = pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x + 3];
-                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f-1, move.attackedPieceBP.y - 11.7f, -1);
+                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f - 1, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x-1] = rook;//set index position
+                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x - 1] = rook;//set index position
                 pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x + 3] = null;
                 //set board Position
-                rook.boardPosition = new Vector2Int(move.attackedPieceBP.x-1, move.attackedPieceBP.y);
-                rook.amountMoved +=1;
+                rook.boardPosition = new Vector2Int(move.attackedPieceBP.x - 1, move.attackedPieceBP.y);
+                rook.amountMoved += 1;
             }
             else if (move.attackedPieceBP.x < move.movingPieceBP.x)
             {
-                Piece rook = pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x -4];
-                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f+1, move.attackedPieceBP.y - 11.7f, -1);
+                Piece rook = pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x - 4];
+                rook.gameObject.transform.position = 0.4f * new Vector3(move.attackedPieceBP.x - 12.7f + 1, move.attackedPieceBP.y - 11.7f, -1);
                 //set index position
-                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x+1] = rook;//set index position
-                pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x -4] = null;
+                pieces[move.attackedPieceBP.y * 24 + move.attackedPieceBP.x + 1] = rook;//set index position
+                pieces[move.movingPieceBP.y * 24 + move.movingPieceBP.x - 4] = null;
                 //set board Position
-                rook.boardPosition = new Vector2Int(move.attackedPieceBP.x+1, move.attackedPieceBP.y);
-                rook.amountMoved +=1;
+                rook.boardPosition = new Vector2Int(move.attackedPieceBP.x + 1, move.attackedPieceBP.y);
+                rook.amountMoved += 1;
             }
         }
 
@@ -628,10 +848,9 @@ public class GameManager : MonoBehaviour
         {
             lastSeletedPiece = selectedPiece;
             selectedPiece = null;
+            fiftyMoveCounter++;
             isPlayerTurn = !isPlayerTurn;
         }
-
-        
     }
 
     public void StartSearch(bool color)
@@ -648,11 +867,11 @@ public class GameManager : MonoBehaviour
         // Iterative deepening. This means doing a full search with a depth of 1, then with a depth of 2, and so on.
         // This allows the search to be aborted at any time, while still yielding a useful result from the last search.
 
-        int targetDepth = 50;
+        int targetDepth = int.MaxValue;
 
         for (int searchDepth = 1; searchDepth <= targetDepth; searchDepth++)
-        {
-            SearchMoves(1, 0, color, -999999999,  999999999);
+        {   
+            SearchMoves(1, 0, color, -999999999, 999999999);
             if (abortSearch)
             {
                 break;
@@ -671,6 +890,29 @@ public class GameManager : MonoBehaviour
             }
         }
         onSearchComplete?.Invoke(bestMove);
+    }
+
+    public int RandomMoveGenerator(bool color, int plyFromRoot)
+    {
+        List<Move> possibleMoves = GenerateAllMovesForColor(color);
+        if (possibleMoves.Count == 0)
+        {
+            if (IsCheck(color))
+            {
+                int mateScore = immediateMateScore - plyFromRoot;
+                bestNegamaxMove = possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)];
+                return -mateScore;
+            }
+            else
+            {
+                return 0;
+            }
+        } else
+        {
+            plyFromRoot = plyFromRoot + 1;
+            bestNegamaxMove = possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)];
+            return UnityEngine.Random.Range(0, possibleMoves.Count);
+        }
     }
 
     public static bool IsMateScore(int score)
@@ -712,6 +954,7 @@ public class GameManager : MonoBehaviour
                 if (IsCheck(color))
                 {
                     int mateScore = immediateMateScore - plyFromRoot;
+                    bestNegamaxMove = possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)];
                     return -mateScore;
                 }
                 else
@@ -748,9 +991,10 @@ public class GameManager : MonoBehaviour
             }
             bestNegamaxMove = tempBestMove;
             return alpha;
-        } else
+        }
+        else
         {
-            score = EvaluateBoard(color);
+            score = Negamax(depth, color, alpha, beta);
             lastNegamaxMove = bestNegamaxMove;
             return (int)score;
         }
@@ -759,7 +1003,6 @@ public class GameManager : MonoBehaviour
     float Negamax(int depth, bool color, float alpha, float beta)
     {
         float score = Mathf.NegativeInfinity;
-        Move tempBestMove = new Move();
         if (depth == 0)
         {
             score = EvaluateBoard(color);
@@ -768,7 +1011,7 @@ public class GameManager : MonoBehaviour
         }
         List<Move> possibleMoves = GenerateAllMovesForColor(color);
 
-        foreach(Move move in possibleMoves)
+        foreach (Move move in possibleMoves)
         {
             if (move.movingPiece == null)
             {
@@ -778,16 +1021,14 @@ public class GameManager : MonoBehaviour
             List<Vector2Int> listOfMovesTemp = new List<Vector2Int>();
             listOfMovesTemp.Add(move.attackedPieceBP);
             PlayMove(false, move, listOfMovesTemp, false);
-            currentScore = -Negamax(depth-1, !color, -beta, -alpha);
+            currentScore = -Negamax(depth - 1, !color, -beta, -alpha);
             if (currentScore > score)
             {
                 score = currentScore;
-                tempBestMove = move;
             }
             UndoPlayMove();
             if (currentScore >= beta)
             {
-                bestNegamaxMove = tempBestMove;
                 return beta;
             }
             if (score > alpha)
@@ -795,7 +1036,6 @@ public class GameManager : MonoBehaviour
                 alpha = currentScore;
             }
         }
-        bestNegamaxMove = tempBestMove;
         return alpha;
     }
 

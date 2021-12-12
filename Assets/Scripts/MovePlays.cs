@@ -42,34 +42,34 @@ public readonly struct MovePlays{
 		}
 	}
 
-	public int MoveFlagPlayer {
-		get {
-			if (Input.GetKeyDown(KeyCode.A))
-			{
-				return 1;
-			}
-			else if (Input.GetKeyDown(KeyCode.S))
-			{
-				return 2;
-			}
-			else if (Input.GetKeyDown(KeyCode.D))
-			{
-				return 4;
-			}
-			else if (Input.GetKeyDown(KeyCode.F))
-			{
-				return 3;
-			}
-			else
-            {
-				return 0;
-            }
+	public int MoveFlagPlayer() {
+       
+		
+		
+		if (Input.GetKeyDown(KeyCode.A))
+		{
+			return 1;
 		}
+		else if (Input.GetKeyDown(KeyCode.S))
+		{
+			return 2;
+		}
+		else if (Input.GetKeyDown(KeyCode.D))
+		{
+			return 4;
+		}
+		else if (Input.GetKeyDown(KeyCode.F))
+		{
+			return 3;
+		} else
+        {
+			return 0;
+        }
 	}
 
 	public int MoveFlagAI()
 	{
-        return Random.Range(0, 4) switch
+        return Random.Range(1, 4) switch
         {
             1 => 1,
             2 => 2,

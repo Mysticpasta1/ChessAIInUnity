@@ -11,6 +11,31 @@ public class Piece : MonoBehaviour
 
     public Vector2Int boardPosition;
     public Vector2Int startingBoardPosition;
+    private static Piece[] pawn = new Piece[24];
+    private static Piece[] none = new Piece[0];
+    private static Piece[] rook = new Piece[26];
+    private static Piece[] knight = new Piece[28];
+    private static Piece[] bishop = new Piece[26];
+    private static Piece[] king = new Piece[1];
+    private static Piece[] queen = new Piece[1];
+    private static Piece[] amazom = new Piece[4];
+    private static Piece[] wizard = new Piece[2];
+    private static Piece[] champion = new Piece[2];
+    private static Piece[] archbishop = new Piece[2];
+    private static Piece[] chancellor = new Piece[2];
+    private static Piece[] falcon = new Piece[1];
+    private static Piece[] hunter = new Piece[1];
+    private static Piece[] dragon_horse = new Piece[1];
+    private static Piece[] dragon_king = new Piece[1];
+    private static Piece[] gold_general = new Piece[1];
+    private static Piece[] silver_general = new Piece[1];
+    private static Piece[] lance = new Piece[2];
+    private static Piece[] ultima_pawn = new Piece[8];
+    private static Piece[] long_leaper = new Piece[2];
+    private static Piece[] cannon = new Piece[2];
+    private static Piece[] guard = new Piece[2];
+    private static Piece[] mao = new Piece[2];
+    private static Piece[] elephant = new Piece[2];
 
     public void Initialize(Vector2 xy)
     {
@@ -135,7 +160,6 @@ public class Piece : MonoBehaviour
                 }
             }
         }
-
 
         if (color)
         {
@@ -296,6 +320,74 @@ public class Piece : MonoBehaviour
                     sprRenderer.sprite = Resources.Load<Sprite>("elephant");
                     return;
             }
+        }
+    }
+
+    public Sprite getPieceSprite(int pieceTypeSprite, bool colorSprite, SpriteRenderer sprRenderer)
+    {
+        if (colorSprite)
+        {
+            return pieceTypeSprite switch
+            {
+                0 => Resources.Load<Sprite>("none"),
+                1 => Resources.Load<Sprite>("pawn 1"),
+                2 => Resources.Load<Sprite>("rook 1"),
+                3 => Resources.Load<Sprite>("knight 1"),
+                4 => Resources.Load<Sprite>("bishop 1"),
+                5 => Resources.Load<Sprite>("king 1"),
+                6 => Resources.Load<Sprite>("queen 1"),
+                7 => Resources.Load<Sprite>("amazon 1"),
+                8 => Resources.Load<Sprite>("wizard 1"),
+                9 => Resources.Load<Sprite>("champion 1"),
+                10 => Resources.Load<Sprite>("archbishop 1"),
+                11 => Resources.Load<Sprite>("chancellor 1"),
+                12 => Resources.Load<Sprite>("falcon 1"),
+                13 => Resources.Load<Sprite>("hunter 1"),
+                14 => Resources.Load<Sprite>("dragon_horse 1"),
+                15 => Resources.Load<Sprite>("dragon_king 1"),
+                16 => Resources.Load<Sprite>("gold_general 1"),
+                17 => Resources.Load<Sprite>("silver_general 1"),
+                18 => Resources.Load<Sprite>("lance 1"),
+                19 => Resources.Load<Sprite>("ultima_pawn 1"),
+                20 => Resources.Load<Sprite>("long_leaper 1"),
+                21 => Resources.Load<Sprite>("cannon 1"),
+                22 => Resources.Load<Sprite>("guard 1"),
+                23 => Resources.Load<Sprite>("mao 1"),
+                24 => Resources.Load<Sprite>("elephant 1"),
+                _ => Resources.Load<Sprite>("none"),
+            };
+        }
+        else
+        {
+            return pieceTypeSprite switch
+            {
+                0 => Resources.Load<Sprite>("none"),
+                1 => Resources.Load<Sprite>("pawn"),
+                2 => Resources.Load<Sprite>("rook"),
+                3 => Resources.Load<Sprite>("knight"),
+                4 => Resources.Load<Sprite>("bishop"),
+                5 => Resources.Load<Sprite>("king"),
+                6 => Resources.Load<Sprite>("queen"),
+                7 => Resources.Load<Sprite>("amazon"),
+                8 => Resources.Load<Sprite>("wizard"),
+                9 => Resources.Load<Sprite>("champion"),
+                10 => Resources.Load<Sprite>("archbishop"),
+                11 => Resources.Load<Sprite>("chancellor"),
+                12 => Resources.Load<Sprite>("falcon"),
+                13 => Resources.Load<Sprite>("hunter"),
+                14 => Resources.Load<Sprite>("dragon_horse"),
+                15 => Resources.Load<Sprite>("dragon_king"),
+                16 => Resources.Load<Sprite>("gold_general"),
+                17 => Resources.Load<Sprite>("silver_general"),
+                18 => Resources.Load<Sprite>("lance"),
+                19 => Resources.Load<Sprite>("ultima_pawn"),
+                20 => Resources.Load<Sprite>("long_leaper"),
+                21 => Resources.Load<Sprite>("cannon"),
+                22 => Resources.Load<Sprite>("guard"),
+                23 => Resources.Load<Sprite>("mao"),
+                24 => Resources.Load<Sprite>("elephant"),
+                _ => Resources.Load<Sprite>("none"),
+            };
         }
     }
 
@@ -695,50 +787,132 @@ public class Piece : MonoBehaviour
         }
     }
 
-    public int PromotionPieceType()
+    public void PromotionPieceType()
     {
         MovePlays mp = new MovePlays();
         GameManager gm = GameManager.current;
         if (!gm.isAiVsMode)
         {
-            if (gm.isPlayerAI)
+            if (!gm.isPlayerIsBlackMode)
             {
-                switch (mp.MoveFlagAI())
+                if (gm.isPlayerAI)
                 {
-                    case MovePlays.Flag.PromoteToRook:
-                        gm.promotePawnToRookAI();
-                        return 2;
-                    case MovePlays.Flag.PromoteToKnight:
-                        gm.promotePawnToKnightAI();
-                        return 3;
-                    case MovePlays.Flag.PromoteToBishop:
-                        gm.promotePawnToBishopAI();
-                        return 4;
-                    case MovePlays.Flag.PromoteToQueen:
-                        gm.promotePawnToQueenAI();
-                        return 6;
-                    default:
-                        return 0;
+                    if (!gm.isPlayerWhite)
+                    {
+                        switch (mp.MoveFlagAI())
+                        {
+                            case MovePlays.Flag.PromoteToRook:
+                                gm.promotePawnToRookAI();
+                                break;
+                            case MovePlays.Flag.PromoteToKnight:
+                                gm.promotePawnToKnightAI();
+                                break;
+                            case MovePlays.Flag.PromoteToBishop:
+                                gm.promotePawnToBishopAI();
+                                break;
+                            case MovePlays.Flag.PromoteToQueen:
+                                gm.promotePawnToQueenAI();
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (mp.MoveFlagPlayer())
+                        {
+                            case MovePlays.Flag.PromoteToRook:
+                                gm.promotePawnToRook();
+                                break;
+                            case MovePlays.Flag.PromoteToKnight:
+                                gm.promotePawnToKnight();
+                                break;
+                            case MovePlays.Flag.PromoteToBishop:
+                                gm.promotePawnToBishop();
+                                break;
+                            case MovePlays.Flag.PromoteToQueen:
+                                gm.promotePawnToQueen();
+                                break;
+                        }
+                    }
                 }
-            }
-            else
-            {
-                switch (mp.MoveFlagPlayer)
+                else
                 {
-                    case MovePlays.Flag.PromoteToRook:
-                        gm.promotePawnToRook();
-                        return 2;
-                    case MovePlays.Flag.PromoteToKnight:
-                        gm.promotePawnToKnight();
-                        return 3;
-                    case MovePlays.Flag.PromoteToBishop:
-                        gm.promotePawnToBishop();
-                        return 4;
-                    case MovePlays.Flag.PromoteToQueen:
-                        gm.promotePawnToQueen();
-                        return 6;
-                    default:
-                        return 0;
+
+                    switch (mp.MoveFlagPlayer())
+                    {
+                        case MovePlays.Flag.PromoteToRook:
+                            gm.promotePawnToRook();
+                            break;
+                        case MovePlays.Flag.PromoteToKnight:
+                            gm.promotePawnToKnight();
+                            break;
+                        case MovePlays.Flag.PromoteToBishop:
+                            gm.promotePawnToBishop();
+                            break;
+                        case MovePlays.Flag.PromoteToQueen:
+                            gm.promotePawnToQueen();
+                            break;
+                    }
+                }
+            } else
+            {
+                if (gm.isPlayerAI)
+                {
+                    if (gm.isPlayerWhite)
+                    {
+                        switch (mp.MoveFlagAI())
+                        {
+                            case MovePlays.Flag.PromoteToRook:
+                                gm.promotePawnToRookAI();
+                                break;
+                            case MovePlays.Flag.PromoteToKnight:
+                                gm.promotePawnToKnightAI();
+                                break;
+                            case MovePlays.Flag.PromoteToBishop:
+                                gm.promotePawnToBishopAI();
+                                break;
+                            case MovePlays.Flag.PromoteToQueen:
+                                gm.promotePawnToQueenAI();
+                                break;
+
+                        }
+                    }
+                    else
+                    {
+                        switch (mp.MoveFlagPlayer())
+                        {
+                            case MovePlays.Flag.PromoteToRook:
+                                gm.promotePawnToRook();
+                                break;
+                            case MovePlays.Flag.PromoteToKnight:
+                                gm.promotePawnToKnight();
+                                break;
+                            case MovePlays.Flag.PromoteToBishop:
+                                gm.promotePawnToBishop();
+                                break;
+                            case MovePlays.Flag.PromoteToQueen:
+                                gm.promotePawnToQueen();
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+
+                    switch (mp.MoveFlagPlayer())
+                    {
+                        case MovePlays.Flag.PromoteToRook:
+                            gm.promotePawnToRook();
+                            break;
+                        case MovePlays.Flag.PromoteToKnight:
+                            gm.promotePawnToKnight();
+                            break;
+                        case MovePlays.Flag.PromoteToBishop:
+                            gm.promotePawnToBishop();
+                            break;
+                        case MovePlays.Flag.PromoteToQueen:
+                            gm.promotePawnToQueen();
+                            break;
+                    }
                 }
             }
         } else
@@ -749,39 +923,155 @@ public class Piece : MonoBehaviour
                 {
                     case MovePlays.Flag.PromoteToRook:
                         gm.promotePawnToRookAI();
-                        return 2;
+                        break;
                     case MovePlays.Flag.PromoteToKnight:
                         gm.promotePawnToKnightAI();
-                        return 3;
+                        break;
                     case MovePlays.Flag.PromoteToBishop:
                         gm.promotePawnToBishopAI();
-                        return 4;
+                        break;
                     case MovePlays.Flag.PromoteToQueen:
                         gm.promotePawnToQueenAI();
-                        return 6;
-                    default:
-                        return 0;
+                        break;
                 }
             }
             else
             {
-                switch (mp.MoveFlagPlayer)
+                switch (mp.MoveFlagAI())
                 {
                     case MovePlays.Flag.PromoteToRook:
-                        gm.promotePawnToRook();
-                        return 2;
+                        gm.promotePawnToRookAI();
+                        break;
                     case MovePlays.Flag.PromoteToKnight:
-                        gm.promotePawnToKnight();
-                        return 3;
+                        gm.promotePawnToKnightAI();
+                        break;
                     case MovePlays.Flag.PromoteToBishop:
-                        gm.promotePawnToBishop();
-                        return 4;
+                        gm.promotePawnToBishopAI();
+                        break;
                     case MovePlays.Flag.PromoteToQueen:
-                        gm.promotePawnToQueen();
-                        return 6;
-                    default:
-                        return 0;
+                        gm.promotePawnToQueenAI();
+                        break;
                 }
+            }
+        }
+    }
+
+    public static  Piece[] getPieceFromInt(int piece, bool color)
+    {
+        if (color)
+        {
+            switch (piece)
+            {
+                case 0:
+                    return none;
+                case 1:
+                    return pawn;
+                case 2:
+                    return rook;
+                case 3:
+                    return knight;
+                case 4:
+                    return bishop;
+                case 5:
+                    return king;
+                case 6:
+                    return queen;
+                case 7:
+                    return amazom;
+                case 8:
+                    return wizard;
+                case 9:
+                    return champion;
+                case 10:
+                    return archbishop;
+                case 11:
+                    return chancellor;
+                case 12:
+                    return falcon;
+                case 13:
+                    return hunter;
+                case 14:
+                    return dragon_horse;
+                case 15:
+                    return dragon_king;
+                case 16:
+                    return gold_general;
+                case 17:
+                    return silver_general;
+                case 18:
+                    return lance;
+                case 19:
+                    return ultima_pawn;
+                case 20:
+                    return long_leaper;
+                case 21:
+                    return cannon;
+                case 22:
+                    return guard;
+                case 23:
+                    return mao;
+                case 24:
+                    return elephant;
+                default:
+                    return none;
+            }
+        }
+        else
+        {
+            switch (piece)
+            {
+                case 0:
+                    return none;
+                case 1:
+                    return pawn;
+                case 2:
+                    return rook;
+                case 3:
+                    return knight;
+                case 4:
+                    return bishop;
+                case 5:
+                    return king;
+                case 6:
+                    return queen;
+                case 7:
+                    return amazom;
+                case 8:
+                    return wizard;
+                case 9:
+                    return champion;
+                case 10:
+                    return archbishop;
+                case 11:
+                    return chancellor;
+                case 12:
+                    return falcon;
+                case 13:
+                    return hunter;
+                case 14:
+                    return dragon_horse;
+                case 15:
+                    return dragon_king;
+                case 16:
+                    return gold_general;
+                case 17:
+                    return silver_general;
+                case 18:
+                    return lance;
+                case 19:
+                    return ultima_pawn;
+                case 20:
+                    return long_leaper;
+                case 21:
+                    return cannon;
+                case 22:
+                    return guard;
+                case 23:
+                    return mao;
+                case 24:
+                    return elephant;
+                default:
+                    return none;
             }
         }
     }
@@ -790,7 +1080,7 @@ public class Piece : MonoBehaviour
     {
         Vector2Int[] offsets = new Vector2Int[] { new Vector2Int(-1, 0), new Vector2Int(1, 0) };
         List<Vector2Int> moves = new List<Vector2Int>();
-        if (boardPosition.y == 23 || boardPosition.y == 0)
+        if (boardPosition.y == 23|| boardPosition.y == 0)
         {
             PromotionPieceType();
             return moves;
@@ -815,7 +1105,7 @@ public class Piece : MonoBehaviour
         foreach (Vector2Int Moon in Moons)
         {
             index = boardPosition + Moon * colorType;
-            if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
+            if (index.x > 24 || index.y > 23 || index.x < 0 || index.y < 0)
             {
                 continue;
             }
