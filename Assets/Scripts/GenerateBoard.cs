@@ -8,6 +8,9 @@ public class GenerateBoard : MonoBehaviour
     public Sprite whiteTile;
     public GameObject zoom;
     public GameObject square;
+    public GameObject text;
+    public GameObject textSquare;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -53,7 +56,7 @@ public class GenerateBoard : MonoBehaviour
                 
                 Piece piece = new GameObject("piece").AddComponent<Piece>();
                 piece.tag = "pieces";
-                piece.Initialize(new Vector2(x, y));
+                piece.Initialize(FenUtility.startFen);
                 piece.transform.parent = board.transform;
                 piece.transform.localPosition = new Vector3(x * 0.4f- 5.1f, y * 0.4f - 4.7f, -1);
                 GameManager.current.pieces[y * 24 + x] = piece;
@@ -66,8 +69,11 @@ public class GenerateBoard : MonoBehaviour
             thing.AddComponent<Zoom>();
             thing.GetComponent<BoxCollider2D>().size = new Vector2(0.4f, 0.4f);
             thing.GetComponent<BoxCollider2D>().offset = new Vector2(0.01f, 0.02f);
+            thing.transform.localScale = new Vector2(0.9f, 0.9f);
             thing.GetComponent<Zoom>().zoom = zoom;
             thing.GetComponent<Zoom>().square = square;
+            thing.GetComponent<Zoom>().text = text;
+            thing.GetComponent<Zoom>().textSquare = textSquare;
         }
     }
 }

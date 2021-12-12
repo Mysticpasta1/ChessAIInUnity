@@ -37,7 +37,9 @@ public class GameManager : MonoBehaviour
     private Piece lastMovedPiece;
     public int fiftyMoveCounter;
     public bool isPlayerIsBlackMode;
-    internal bool toolTipsEnabled;
+    public bool toolTipsEnabled;
+    public int plyCount = 1;
+    public int[] Square;
 
     private event System.Action<Move> onSearchComplete;
 
@@ -49,6 +51,8 @@ public class GameManager : MonoBehaviour
         tiles = new GameObject[576];
         isPlayerTurn = isPlayerWhite;
         undoMoves = new Stack<Move>();
+        Square = new int[576];
+
     }
 
     public void toolTipsEnable()
@@ -142,13 +146,15 @@ public class GameManager : MonoBehaviour
             }
             return Result.Stalemate;
         }
-        
+
+        int colorIndex = color ? 0 : 1; 
+
         // Look for insufficient material (not all cases implemented yet)
-        int numPawns = Piece.getPieceFromInt(1, color).Length + Piece.getPieceFromInt(1, !color).Length;
-        int numRooks = Piece.getPieceFromInt(2, color).Length + Piece.getPieceFromInt(1, !color).Length;
-        int numQueens = Piece.getPieceFromInt(6, color).Length + Piece.getPieceFromInt(1, !color).Length;
-        int numKnights = Piece.getPieceFromInt(3, color).Length + Piece.getPieceFromInt(1, !color).Length;
-        int numBishops = Piece.getPieceFromInt(4, color).Length + Piece.getPieceFromInt(1, !color).Length;
+        int numPawns = pieces[colorIndex].getPieceFromInt(1, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
+        int numRooks = pieces[colorIndex].getPieceFromInt(2, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
+        int numQueens = pieces[colorIndex].getPieceFromInt(6, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
+        int numKnights = pieces[colorIndex].getPieceFromInt(3, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
+        int numBishops = pieces[colorIndex].getPieceFromInt(4, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
 
         if (numPawns + numRooks + numQueens == 0)
         {
@@ -324,6 +330,7 @@ public class GameManager : MonoBehaviour
                     printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
+                    plyCount++;
                 }
             }
             else
@@ -341,6 +348,7 @@ public class GameManager : MonoBehaviour
                     AIMove(!isPlayerWhite);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
+                    plyCount++;
                 }
             }
         }
@@ -357,6 +365,7 @@ public class GameManager : MonoBehaviour
                 printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(!isPlayerWhite);
+                plyCount++;
             }
         }
     }
@@ -714,12 +723,13 @@ public class GameManager : MonoBehaviour
             if (!isColored)
             {
                 SpriteRenderer sprRenderer = tiles[tile.y*24+tile.x].GetComponent<SpriteRenderer>();
-                sprRenderer.sprite = Resources.Load<Sprite>("selectedTile");
+                sprRenderer.color = new Color(0, 76, 255, 0.5f);
             }
             else
             {
                 SpriteRenderer sprRenderer = tiles[tile.y*24+tile.x].GetComponent<SpriteRenderer>();
                 sprRenderer.sprite = ((((tile.y)+tile.x)%2)==0) ? Resources.Load<Sprite>("blackTile") : Resources.Load<Sprite>("whiteTile");
+                sprRenderer.color = (((tile.y) + tile.x) % 2) == 0 ? new Color(1,1,1,1) : new Color(1, 1, 1, 1);
             }
         }
     }
