@@ -7,6 +7,8 @@ TagManager:
   - Board
   - pieces
   - Win Text
+  - board pieces
+  - Input
   layers:
   - Default
   - TransparentFX

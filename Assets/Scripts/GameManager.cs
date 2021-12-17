@@ -52,7 +52,6 @@ public class GameManager : MonoBehaviour
         isPlayerTurn = isPlayerWhite;
         undoMoves = new Stack<Move>();
         Square = new int[576];
-
     }
 
     public void toolTipsEnable()
@@ -149,21 +148,6 @@ public class GameManager : MonoBehaviour
 
         int colorIndex = color ? 0 : 1; 
 
-        // Look for insufficient material (not all cases implemented yet)
-        int numPawns = pieces[colorIndex].getPieceFromInt(1, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
-        int numRooks = pieces[colorIndex].getPieceFromInt(2, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
-        int numQueens = pieces[colorIndex].getPieceFromInt(6, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
-        int numKnights = pieces[colorIndex].getPieceFromInt(3, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
-        int numBishops = pieces[colorIndex].getPieceFromInt(4, color).Length + pieces[colorIndex].getPieceFromInt(1, !color).Length;
-
-        if (numPawns + numRooks + numQueens == 0)
-        {
-            if (numKnights == 1 || numBishops == 1)
-            {
-                return Result.InsufficientMaterial;
-            }
-        }
-
 
         // Fifty move rule
         if (fiftyMoveCounter >= 100)
@@ -188,7 +172,7 @@ public class GameManager : MonoBehaviour
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
                         Debug.Log("Game Over");
                     }
-                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    else if (Result.FiftyMoveRule == result|| Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
@@ -203,7 +187,7 @@ public class GameManager : MonoBehaviour
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
                         Debug.Log("Game Over");
                     }
-                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
@@ -221,7 +205,7 @@ public class GameManager : MonoBehaviour
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " player is the winner";
                         Debug.Log("Game Over");
                     }
-                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs AI stalemate";
@@ -236,7 +220,7 @@ public class GameManager : MonoBehaviour
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
                         Debug.Log("Game Over");
                     }
-                    else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                    else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs AI stalemate";
@@ -257,7 +241,7 @@ public class GameManager : MonoBehaviour
                     Debug.Log("Game Over");
                     
                 }
-                else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                 {
                     GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                     GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs player stalemate";
@@ -272,7 +256,7 @@ public class GameManager : MonoBehaviour
                     GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " player is the winner";
                     Debug.Log("Game Over");
                 }
-                else if (Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result)
+                else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                 {
                     GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                     GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "player vs player stalemate";
@@ -304,6 +288,8 @@ public class GameManager : MonoBehaviour
             {
                 Destroy(pieces[i]);
             }
+            GameObject boardPiece = GameObject.FindGameObjectWithTag("board pieces");
+            Destroy(boardPiece);
             GameObject board = GameObject.FindGameObjectWithTag("Board");
             GenerateBoard gb = board.GetComponent<GenerateBoard>();
             gb.GeneratePieces();
@@ -386,7 +372,7 @@ public class GameManager : MonoBehaviour
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-            if (lastSeletedPiece.color)
+            if ((bool) lastSeletedPiece.color)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
                 lastSeletedPiece.pieceType = 6;
@@ -414,7 +400,7 @@ public class GameManager : MonoBehaviour
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-            if (lastSeletedPiece.color)
+            if ((bool)lastSeletedPiece.color)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
                 lastSeletedPiece.pieceType = 3;
@@ -441,7 +427,7 @@ public class GameManager : MonoBehaviour
         }
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23)) {
                 SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-                if (lastSeletedPiece.color)
+                if ((bool)lastSeletedPiece.color)
                 {
                     sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
                     lastSeletedPiece.pieceType = 4;
@@ -467,7 +453,7 @@ public class GameManager : MonoBehaviour
         }
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23)) {
             SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-            if (lastSeletedPiece.color)
+            if ((bool)lastSeletedPiece.color)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
                 lastSeletedPiece.pieceType = 2;
@@ -496,7 +482,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if (lastMovedPiece.color)
+            if ((bool) lastMovedPiece.color)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
                 lastMovedPiece.pieceType = 6;
@@ -524,7 +510,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if (lastMovedPiece.color)
+            if ((bool)lastMovedPiece.color)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
                 lastMovedPiece.pieceType = 4;
@@ -552,7 +538,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if (lastMovedPiece.color)
+            if ((bool)lastMovedPiece.color)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
                 lastMovedPiece.pieceType = 2;
@@ -1100,6 +1086,9 @@ public class GameManager : MonoBehaviour
             if (kingPosition == move)
             {
                 return true;
+            } else
+            {
+                return false;
             }
             
         }

@@ -38,25 +38,32 @@ public class GenerateBoard : MonoBehaviour
         board.transform.localScale = board.transform.localScale * 0.4f;
     }
 
+    public string getFen()
+    {
+        if (InputFen.customFen != null && InputFen.customFen.Length > 0)
+        {
+            return InputFen.customFen;
+        } else
+        {
+            return FenUtility.startFen;
+        }
+    }
+
     public void GeneratePieces()
     {
         GameObject board = new GameObject("Board Pieces");
+        board.tag = "board pieces";
        
         board.transform.parent = transform;
         for (int y=0; y<24; y++)
         {
             for (int x=0; x<24; x++)
             {
-                if (y > 2 && y < 21)
-                {
-                    //add piece as null to gamemanager pieces
-                    GameManager.current.pieces[y*24+x] = null;
-                    continue;
-                }
-                
                 Piece piece = new GameObject("piece").AddComponent<Piece>();
                 piece.tag = "pieces";
-                piece.Initialize(FenUtility.startFen);
+                piece.colorMath(getFen(), new Vector2(x, y));
+                piece.pieceTypeInit(getFen(), new Vector2(x,y));
+                piece.getPieceSprites();
                 piece.transform.parent = board.transform;
                 piece.transform.localPosition = new Vector3(x * 0.4f- 5.1f, y * 0.4f - 4.7f, -1);
                 GameManager.current.pieces[y * 24 + x] = piece;

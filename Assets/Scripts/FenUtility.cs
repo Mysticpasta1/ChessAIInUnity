@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
-public static class FenUtility {
+using UnityEngine;
+using UnityEngine.UI;
 
-		
+public class FenUtility {
+
 	static Dictionary<char, int> pieceTypeFromSymbol = new Dictionary<char, int>()
 	{
 		['k'] = 5,
@@ -30,31 +32,60 @@ public static class FenUtility {
 		['z'] = 8
 	};
 
-	public const string startFen = "88rnbqkbnr/88pppppppp/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/88PPPPPPPP/88RNBQKBNR w - 0 1";
-	/*"rmxxxxcfnnhikqnnfcxxxxtr/uljvwobzaadeedaazbowvjlu/pppppppppppppppppppppppp/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/PPPPPPPPPPPPPPPPPPPPPPPP/ULJVWOBZAADEEDAAZBOWVJLU/RTXXXXCFNNHIKQNNFCXXXXMR w - - 0 1"*/
+	public const string startFen = "rmxxxxcfnnhikqnnfcxxxxtr/uljvwobzaadeedaazbowvjsu/pppppppppppppppppppppppp/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/PPPPPPPPPPPPPPPPPPPPPPPP/USJVWOBZAADEEDAAZBOWVJLU/RTXXXXCFNNHIKQNNFCXXXXMR w - - 0 1";
 
 	// Load position from fen string
 	public static LoadedPositionInfo PositionFromFen (string fen) {
 
 		LoadedPositionInfo loadedPositionInfo = new LoadedPositionInfo ();
 		string[] sections = fen.Split (' ');
-
+		
 		int file = 0;
 		int rank = 23;
+		int file2 = 0;
+		int rank2 = 23;
 
-		foreach (char symbol in sections[0]) {
-			if (symbol == '/') {
+		foreach (char symbol in sections[0])
+		{
+			if (symbol == '/')
+			{
+				file2 = 0;
+				rank2--;
+			}
+			else
+			{
+				if (char.IsDigit(symbol))
+				{
+					file2 += (int)char.GetNumericValue(symbol);
+				}
+				else
+				{
+					int pieceColourInt = char.IsUpper(symbol) ? 0 : 1;
+					loadedPositionInfo.colors[rank2 * 24 + file2] = pieceColourInt;
+					file2++;
+				}
+			}
+		}
+
+		foreach (char symbol in sections[0])
+		{
+			if (symbol == '/')
+			{
 				file = 0;
 				rank--;
-			} else {
-				if (char.IsDigit (symbol)) {
-					file += (int) char.GetNumericValue (symbol);
-				} else {
-					int pieceColour = (char.IsUpper (symbol)) ? 1 : -1;
-					int pieceType = pieceTypeFromSymbol[char.ToLower (symbol)];
-					loadedPositionInfo.squares[rank * 8 + file] = pieceType | pieceColour;
-					file++;
+			}
+			else
+			{
+				if (char.IsDigit(symbol))
+				{
+					file += (int)char.GetNumericValue(symbol);
 				}
+				else
+				{
+					int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
+					loadedPositionInfo.squares[rank * 24 + file] = pieceType;
+					file++;
+				} 
 			}
 		}
 
@@ -74,8 +105,9 @@ public static class FenUtility {
 		for (int rank = 23; rank >= 0; rank--) {
 			int numEmptyFiles = 0;
 			for (int file = 0; file < 8; file++) {
-				int i = rank * 8 + file;
+				int i = rank * 24 + file;
 				int piece = gameManager.Square[i];
+				bool isBlack = Piece.IsColour(piece, Piece.Black);
 				if (piece != 0) {
 					if (numEmptyFiles != 0) {
 						fen += numEmptyFiles;
@@ -157,7 +189,7 @@ public static class FenUtility {
 							pieceChar = 'Z';
 							break;
 					}
-					fen += (gameManager.isPlayerWhite) ? pieceChar.ToString ().ToLower () : pieceChar.ToString ();
+					fen += isBlack ? pieceChar.ToString ().ToLower () : pieceChar.ToString ();
 						
 				} else {
 					numEmptyFiles++;
@@ -191,9 +223,11 @@ public static class FenUtility {
 		public int[] squares;
 		public bool whiteToMove;
 		public int plyCount;
+		public int[] colors;
 
 		public LoadedPositionInfo () {
 			squares = new int[576];
+			colors = new int[576];
 		}
 	}
 }

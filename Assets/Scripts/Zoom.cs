@@ -11,13 +11,6 @@ public class Zoom : MonoBehaviour
     public GameObject textSquare;
     // Start is called before the first frame update
    
-    void Start()
-    {
-        zoom.SetActive(false);
-        square.SetActive(false);
-        text.SetActive(false);
-        textSquare.SetActive(false);
-    }
     public void OnMouseOver()
     {
         GameManager gm = GameManager.current;
