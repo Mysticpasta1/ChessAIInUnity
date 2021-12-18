@@ -9,6 +9,7 @@ TagManager:
   - Win Text
   - board pieces
   - Input
+  - tiles
   layers:
   - Default
   - TransparentFX

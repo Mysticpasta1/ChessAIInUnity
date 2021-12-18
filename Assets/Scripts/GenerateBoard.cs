@@ -28,6 +28,7 @@ public class GenerateBoard : MonoBehaviour
             for (int x=0; x<24; x++)
             {
                 SpriteRenderer newPiece = new GameObject("tile " + (y * 24 + x)).AddComponent<SpriteRenderer>();
+                newPiece.tag = "tiles";
                 newPiece.transform.parent = board.transform;
                 newPiece.sprite = (((y + x) % 2) == 0) ? blackTile : whiteTile;
                 newPiece.transform.localScale = 4.8f * newPiece.transform.localScale;

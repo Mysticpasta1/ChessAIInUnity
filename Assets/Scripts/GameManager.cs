@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour
     public bool toolTipsEnabled;
     public int plyCount = 1;
     public int[] Square;
+    private Result endGame;
 
     private event System.Action<Move> onSearchComplete;
 
@@ -134,9 +135,7 @@ public class GameManager : MonoBehaviour
 
     Result GetGameState(bool color)
     {
-        var possibleMoves = GenerateAllMovesForColor(color);
-
-        if (possibleMoves.Count == 0 || bestNegamaxMove.Equals(possibleMoves[UnityEngine.Random.Range(0, 0)]))
+        if (endGame == Result.WhiteIsMated || endGame == Result.BlackIsMated || endGame == Result.Stalemate)
         {
             // Look for mate/stalemate
             if (IsCheck(color))
@@ -172,7 +171,7 @@ public class GameManager : MonoBehaviour
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = getColor() + " AI is the winner";
                         Debug.Log("Game Over");
                     }
-                    else if (Result.FiftyMoveRule == result|| Result.Stalemate == result)
+                    else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
@@ -266,17 +265,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public bool isGameOver(Result result)
-    {
-        if(Result.FiftyMoveRule == result || Result.InsufficientMaterial == result || Result.Stalemate == result || Result.WhiteIsMated == result || Result.BlackIsMated == result)
-        {
-            return true;
-        } else
-        {
-            return false;
-        }
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -284,19 +272,23 @@ public class GameManager : MonoBehaviour
         if (booleanHasChange)
         {
             GameObject[] pieces = GameObject.FindGameObjectsWithTag("pieces");
+            GameObject[] tiles = GameObject.FindGameObjectsWithTag("tiles");
             for (int i = 0; i < pieces.Length; i++)
             {
                 Destroy(pieces[i]);
+            }
+            for (int i = 0; i < tiles.Length; i++)
+            {
+                Destroy(tiles[i]);
             }
             GameObject boardPiece = GameObject.FindGameObjectWithTag("board pieces");
             Destroy(boardPiece);
             GameObject board = GameObject.FindGameObjectWithTag("Board");
             GenerateBoard gb = board.GetComponent<GenerateBoard>();
+            gb.GenerateTiles();
             gb.GeneratePieces();
             booleanHasChange = false;
-
         }
-
         if (!isPlayerVsPlayer)
         {
             if (isAiVsMode)
@@ -650,6 +642,10 @@ public class GameManager : MonoBehaviour
                 {
                     return;
                 }
+                if(IsCheck(!whoseTurn))
+                {
+                    return;
+                }
                 selectedPiece = pieces[mousePosition.y * 24 + mousePosition.x];
                 if (selectedPiece != null)
                 {
@@ -679,6 +675,10 @@ public class GameManager : MonoBehaviour
 
                 Vector2Int mousePosition = GetMousePosition();
                 if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
+                {
+                    return;
+                }
+                if (IsCheck(!whoseTurn))
                 {
                     return;
                 }
@@ -896,11 +896,12 @@ public class GameManager : MonoBehaviour
             if (IsCheck(color))
             {
                 int mateScore = immediateMateScore - plyFromRoot;
-                bestNegamaxMove = possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)];
+                endGame = color ? Result.WhiteIsMated : Result.BlackIsMated;
                 return -mateScore;
             }
             else
             {
+                endGame = Result.Stalemate;
                 return 0;
             }
         } else
@@ -950,10 +951,12 @@ public class GameManager : MonoBehaviour
                 if (IsCheck(color))
                 {
                     int mateScore = immediateMateScore - plyFromRoot;
+                    endGame = color ? Result.WhiteIsMated : Result.BlackIsMated;
                     return -mateScore;
                 }
                 else
                 {
+                    endGame = Result.Stalemate;
                     return 0;
                 }
             }

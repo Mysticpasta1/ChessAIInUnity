@@ -3393,7 +3393,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && (board[index.y * 24 + index.x].pieceType != 0 || board[index.y * 24 + index.x].color != IsColour(9, Black)))
+                else if (board[index.y * 24 + index.x] != null && (board[index.y * 24 + index.x].pieceType != 0 || board[index.y * 24 + index.x].color != IsColour(9, White)))
                 {
                     continue;
                 }
