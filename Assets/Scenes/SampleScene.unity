@@ -772,9 +772,10 @@ GameObject:
   - component: {fileID: 379956041}
   - component: {fileID: 379956040}
   - component: {fileID: 379956039}
+  - component: {fileID: 379956042}
   m_Layer: 0
   m_Name: InputField
-  m_TagString: Untagged
+  m_TagString: Input
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -903,6 +904,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 379956037}
   m_CullTransparentMesh: 1
+--- !u!114 &379956042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 379956037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef5c5ec894f78944282747bb6b5b3410, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &513086130
 GameObject:
   m_ObjectHideFlags: 0
@@ -1178,7 +1191,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 17
+    m_FontSize: 15
     m_FontStyle: 2
     m_BestFit: 0
     m_MinSize: 1
@@ -1187,9 +1200,10 @@ MonoBehaviour:
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: insert fen script here
+  m_Text: insert fen script here - example (start fen) rmxxxxcfnnhikqnnfcxxxxtr/uljvwobzaadeedaazbowvjsu/pppppppppppppppppppppppp/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/888/PPPPPPPPPPPPPPPPPPPPPPPP/USJVWOBZAADEEDAAZBOWVJLU/RTXXXXCFNNHIKQNNFCXXXXMR
+    w - - 0 1
 --- !u!222 &519759100
 CanvasRenderer:
   m_ObjectHideFlags: 0
