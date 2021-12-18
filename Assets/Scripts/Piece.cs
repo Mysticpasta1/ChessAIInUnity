@@ -2708,7 +2708,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(21, Black))
+                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(21, Black))
                 {
                     continue;
                 }
@@ -2749,7 +2749,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(20, Black))
+                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(20, Black))
                 {
                     continue;
                 }
@@ -2777,9 +2777,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color != IsColour(20, White))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color != IsColour(20, Black))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -2806,9 +2814,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color == IsColour(20, Black))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color != IsColour(20, White))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -3030,30 +3046,28 @@ public class Piece : MonoBehaviour
                     {
                         index = boardPosition + 2 * pawnMove * colorType;
 
-                        if (board[index.y * 24 + index.x] && board[index.y * 24 + index.x].pieceType == 0)
+                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        {
+                            return moves;
+                        } else
                         {
                             moves.Add(index);
-                            index = boardPosition + Moon * colorType;
-
-                            if (board[index.y * 24 + index.x] && board[index.y * 24 + index.x].pieceType == 0)
-                            {
-                                moves.Add(index);
-                                return moves;
-                            } else
-                            {
-                                continue;
-                            }
                         }
+
+                        index = boardPosition + Moon * colorType;
+
+                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        {
+                            return moves;
+                        }
+                        moves.Add(index);
                     }
 
-                    if (board[index.y * 24 + index.x] && board[index.y * 24 + index.x].pieceType == 0)
+                    if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
                     {
-                        moves.Add(index);
                         return moves;
-                    } else
-                    {
-                        continue;
                     }
+                    moves.Add(index);
                 }
             }
             return moves;
@@ -3078,7 +3092,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[(index.y * 24) + index.x + offset.x] != null && board[(index.y * 24) + boardPosition.x + -1] != null && board[(index.y * 24) + boardPosition.x + 1] != null && (board[(index.y * 24) + boardPosition.x + -1].pieceType != 0 || board[(index.y * 24) + boardPosition.x + 1].pieceType != 0) && board[(index.y * 24) + index.x + offset.x].color != IsColour(1, Black))
+                else if (board[(index.y * 24) + index.x + offset.x] != null && board[(index.y * 24) + boardPosition.x + -1] != null && board[(index.y * 24) + boardPosition.x + 1] != null && (board[(index.y * 24) + boardPosition.x + -1].pieceType != 0 || board[(index.y * 24) + boardPosition.x + 1].pieceType != 0) && board[(index.y * 24) + index.x + offset.x].color == IsColour(1, White))
                 {
                     moves.Add(index);
                 }
@@ -3097,30 +3111,29 @@ public class Piece : MonoBehaviour
                     {
                         index = boardPosition + 2 * pawnMove * colorType;
 
-                        if (board[index.y * 24 + index.x] && board[index.y * 24 + index.x].pieceType == 0)
+                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        {
+                            return moves;
+                        }
+                        else
                         {
                             moves.Add(index);
-                            index = boardPosition + Moon * colorType;
-
-                            if (board[index.y * 24 + index.x] && board[index.y * 24 + index.x].pieceType == 0)
-                            {
-                                moves.Add(index);
-                                return moves;
-                            } else
-                            {
-                                continue;
-                            }
                         }
+
+                        index = boardPosition + Moon * colorType;
+
+                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        {
+                            return moves;
+                        }
+                        moves.Add(index);
                     }
 
-                    if (board[index.y * 24 + index.x] && board[index.y * 24 + index.x].pieceType == 0)
+                    if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
                     {
-                        moves.Add(index);
                         return moves;
-                    } else
-                    {
-                        continue;
                     }
+                    moves.Add(index);
                 }
             }
             return moves;
@@ -3145,9 +3158,16 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color == IsColour(2, White))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color == IsColour(2, Black))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            } else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -3173,9 +3193,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color != IsColour(2, Black))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color != IsColour(2, White))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -3290,14 +3318,15 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(8, White))
+                else if (board[index.y * 24 + index.x] != null && (board[index.y * 24 + index.x].pieceType != 0 || board[index.y * 24 + index.x].color != IsColour(8, White)))
                 {
                     continue;
                 }
                 moves.Add(index);
             }
             return moves;
-        } else
+        }
+        else
         {
             Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(1, 5), new Vector2Int(-1, 5),
             new Vector2Int(5, 1), new Vector2Int(5, -1),
@@ -3311,7 +3340,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(8, Black))
+                else if (board[index.y * 24 + index.x] != null && (board[index.y * 24 + index.x].pieceType != 0 || board[index.y * 24 + index.x].color != IsColour(8, Black)))
                 {
                     continue;
                 }
@@ -3340,7 +3369,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(9, White))
+                else if (board[index.y * 24 + index.x] != null && (board[index.y * 24 + index.x].pieceType != 0 || board[index.y * 24 + index.x].color != IsColour(9, White)))
                 {
                     continue;
                 }
@@ -3364,7 +3393,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(9, Black))
+                else if (board[index.y * 24 + index.x] != null && (board[index.y * 24 + index.x].pieceType != 0 || board[index.y * 24 + index.x].color != IsColour(9, Black)))
                 {
                     continue;
                 }
@@ -3405,7 +3434,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(17, Black))
+                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(17, Black))
                 {
                     continue;
                 }
@@ -3446,7 +3475,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(16, Black))
+                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(16, Black))
                 {
                     continue;
                 }
@@ -3489,7 +3518,7 @@ public class Piece : MonoBehaviour
                 {
                     continue;
                 }
-                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color == IsColour(18, Black))
+                else if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0 && board[index.y * 24 + index.x].color != IsColour(18, Black))
                 {
                     continue;
                 }
@@ -3563,9 +3592,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color == IsColour(13, White))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color != IsColour(13, Black))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         }
                         else 
                         {
@@ -3592,9 +3629,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color != IsColour(13, Black))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color != IsColour(13, White))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -3624,9 +3669,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color == IsColour(12, White))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color == IsColour(12, Black))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -3651,9 +3704,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color != IsColour(12, Black))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color == IsColour(12, White))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
@@ -3684,10 +3745,19 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color != IsColour(4, White))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color == IsColour(4, Black))
                         {
-                            moves.Add(index);
-                        } else
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
+                        }
+                        else
                         {
                             break;
                         }
@@ -3695,7 +3765,7 @@ public class Piece : MonoBehaviour
                     moves.Add(index);
                 }
             }
-            return moves;
+        return moves;
         } else
         {
             Vector2Int[] offsets = new Vector2Int[]{new Vector2Int(1, 1), new Vector2Int(1, -1),
@@ -3712,9 +3782,17 @@ public class Piece : MonoBehaviour
                     }
                     else if (board[index.y * 24 + index.x] != null)
                     {
-                        if (board[index.y * 24 + index.x].pieceType == 0 && board[index.y * 24 + index.x].color != IsColour(4, Black))
+                        if (board[index.y * 24 + index.x].pieceType == 0 || board[index.y * 24 + index.x].color != IsColour(4, White))
                         {
-                            moves.Add(index);
+                            if (board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                moves.Add(index);
+                                break;
+                            }
+                            else
+                            {
+                                moves.Add(index);
+                            }
                         } else
                         {
                             break;
