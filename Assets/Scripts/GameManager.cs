@@ -676,6 +676,7 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
+
                 Vector2Int mousePosition = GetMousePosition();
                 if (mousePosition.x < 0 || mousePosition.x > 23 || mousePosition.y < 0 || mousePosition.y > 23)
                 {
@@ -895,6 +896,7 @@ public class GameManager : MonoBehaviour
             if (IsCheck(color))
             {
                 int mateScore = immediateMateScore - plyFromRoot;
+                bestNegamaxMove = possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)];
                 return -mateScore;
             }
             else
@@ -1084,6 +1086,9 @@ public class GameManager : MonoBehaviour
             if (kingPosition == move)
             {
                 return true;
+            } else
+            {
+                return false;
             }
             
         }
