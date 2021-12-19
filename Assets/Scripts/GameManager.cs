@@ -364,7 +364,7 @@ public class GameManager : MonoBehaviour
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-            if ((bool) lastSeletedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
                 lastSeletedPiece.pieceType = 6;
@@ -392,7 +392,7 @@ public class GameManager : MonoBehaviour
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-            if ((bool)lastSeletedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
                 lastSeletedPiece.pieceType = 3;
@@ -419,7 +419,7 @@ public class GameManager : MonoBehaviour
         }
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23)) {
                 SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-                if ((bool)lastSeletedPiece.color)
+                if (isPlayerWhite)
                 {
                     sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
                     lastSeletedPiece.pieceType = 4;
@@ -445,7 +445,7 @@ public class GameManager : MonoBehaviour
         }
         if (lastSeletedPiece.pieceType == 1 && (lastSeletedPiece.boardPosition.y == 0 || lastSeletedPiece.boardPosition.y == 23)) {
             SpriteRenderer sprRenderer = lastSeletedPiece.GetComponent<SpriteRenderer>();
-            if ((bool)lastSeletedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
                 lastSeletedPiece.pieceType = 2;
@@ -474,7 +474,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if ((bool) lastMovedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("queen 1");
                 lastMovedPiece.pieceType = 6;
@@ -502,7 +502,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if ((bool)lastMovedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("bishop 1");
                 lastMovedPiece.pieceType = 4;
@@ -530,7 +530,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if ((bool)lastMovedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("rook 1");
                 lastMovedPiece.pieceType = 2;
@@ -557,7 +557,7 @@ public class GameManager : MonoBehaviour
         if (lastMovedPiece.pieceType == 1 && (lastMovedPiece.boardPosition.y == 0 || lastMovedPiece.boardPosition.y == 23))
         {
             SpriteRenderer sprRenderer = lastMovedPiece.GetComponent<SpriteRenderer>();
-            if (lastMovedPiece.color)
+            if (isPlayerWhite)
             {
                 sprRenderer.sprite = Resources.Load<Sprite>("knight 1");
                 lastMovedPiece.pieceType = 3;
@@ -867,7 +867,7 @@ public class GameManager : MonoBehaviour
 
         for (int searchDepth = 1; searchDepth <= targetDepth; searchDepth++)
         {   
-            SearchMoves(1, 0, color, -999999999, 999999999);
+            SearchMoves(searchDepth, 0, color, -999999999, 999999999);
             if (abortSearch)
             {
                 break;

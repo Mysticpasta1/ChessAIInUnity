@@ -3020,23 +3020,56 @@ public class Piece : MonoBehaviour
             Vector2Int pawnMove = new Vector2Int(0, 1);
             Vector2Int[] Moons = new Vector2Int[] { new Vector2Int(0, 1) };
             Vector2Int index;
+            Vector2Int index2;
+            Vector2Int index3;
             foreach (Vector2Int offset in offsets)
             {
                 index = boardPosition + pawnMove * colorType + offset;
+                index2 = boardPosition + pawnMove * colorType;
                 if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
                 {
                     continue;
                 }
-                else if (board[(index.y * 24) + index.x + offset.x] != null && board[(index.y * 24) + boardPosition.x + -1] != null && board[(index.y * 24) + boardPosition.x + 1] != null && board[index.y * 24 + index.x] != null && (board[(index.y * 24) + boardPosition.x + -1].pieceType != 0 || board[(index.y * 24) + boardPosition.x + 1].pieceType != 0) && board[(index.y * 24) + index.x].color != board[(index.y * 24) + index.x + offset.x].color)
+
+                if (index2.x > 23 || index2.y > 23 || index2.x < 0 || index2.y < 0)
                 {
-                    moves.Add(index);
+                    continue;
                 }
+
+                if (boardPosition.x != 0 && board[(index.y * 24) + boardPosition.x - 1] != null)
+                {
+                    if (boardPosition.x - 1 <= 23 && boardPosition.x - 1 >= 0)
+                    {
+                        if (board[(index.y * 24) + boardPosition.x - 1].color != this.color)
+                        {
+                            if (board[(index.y * 24) + boardPosition.x - 1].pieceType != 0)
+                            {
+                                moves.Add(index2 + new Vector2Int(-1, 0));
+                            }
+                        }
+                    }
+                }
+
+                if (boardPosition.x != 23 && board[(index.y * 24) + boardPosition.x + 1] != null)
+                {
+                    if (boardPosition.x + 1 <= 23 && boardPosition.x + 1 >= 0)
+                    {
+                        if (board[(index.y * 24) + boardPosition.x + 1].color != this.color)
+                        {
+                            if (board[(index.y * 24) + boardPosition.x + 1].pieceType != 0)
+                            {
+                                moves.Add(index2 + new Vector2Int(1, 0));
+                            }
+                        }
+                    }
+                }   
             }
 
             foreach (Vector2Int Moon in Moons)
             {
                 index = boardPosition + Moon * colorType;
-                if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
+                index3 = boardPosition + Moon * colorType;
+                if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0 || index3.x > 23 || index3.y > 23 || index3.x < 0 || index3.y < 0)
                 {
                     continue;
                 }
@@ -3044,23 +3077,20 @@ public class Piece : MonoBehaviour
                 {
                     if (amountMoved == 0)
                     {
-                        index = boardPosition + 2 * pawnMove * colorType;
-
-                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        if (board[index3.y * 24 + index3.x] != null && board[index3.y * 24 + index3.x].pieceType != 0)
                         {
                             return moves;
-                        } else
+                        }
+                        else
                         {
+                            moves.Add(index3);
+                            index = boardPosition + 2 * pawnMove * colorType;
+                            if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                return moves;
+                            } 
                             moves.Add(index);
                         }
-
-                        index = boardPosition + Moon * colorType;
-
-                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
-                        {
-                            return moves;
-                        }
-                        moves.Add(index);
                     }
 
                     if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
@@ -3084,24 +3114,57 @@ public class Piece : MonoBehaviour
             Vector2Int pawnMove = new Vector2Int(0, 1);
             Vector2Int[] Moons = new Vector2Int[] { new Vector2Int(0, 1) };
             Vector2Int index;
+            Vector2Int index2;
+            Vector2Int index3;
             foreach (Vector2Int offset in offsets)
             {
                 GameManager gm = GameManager.current;
                 index = boardPosition + pawnMove * colorType + offset;
+                index2 = boardPosition + pawnMove * colorType;
                 if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
                 {
                     continue;
                 }
-                else if (board[(index.y * 24) + index.x + offset.x] != null && board[(index.y * 24) + boardPosition.x + -1] != null && board[(index.y * 24) + boardPosition.x + 1] != null && (board[(index.y * 24) + boardPosition.x + -1].pieceType != 0 || board[(index.y * 24) + boardPosition.x + 1].pieceType != 0) && board[(index.y * 24) + index.x + offset.x].color == IsColour(1, White))
+
+                if (index2.x > 23 || index2.y > 23 || index2.x < 0 || index2.y < 0)
                 {
-                    moves.Add(index);
+                    continue;
+                }
+
+                if (boardPosition.x != 0  && board[(index.y * 24) + boardPosition.x - 1] != null)
+                {
+                    if (boardPosition.x - 1 <= 23 && boardPosition.x - 1 >= 0)
+                    {
+                        if (board[(index.y * 24) + boardPosition.x - 1].color != IsColour(1, Black))
+                        {
+                            if (board[(index.y * 24) + boardPosition.x - 1].pieceType != 0)
+                            {
+                                moves.Add(index2 + new Vector2Int(-1, 0));
+                            }
+                        }
+                    }
+                }
+
+                if (boardPosition.x != 23 && board[(index.y * 24) + boardPosition.x + 1] != null)
+                {
+                    if (boardPosition.x + 1 <= 23 && boardPosition.x + 1 >= 0)
+                    {
+                        if (board[(index.y * 24) + boardPosition.x + 1].color != IsColour(1, White))
+                        {
+                            if (board[(index.y * 24) + boardPosition.x + 1].pieceType != 0)
+                            {
+                                moves.Add(index2 + new Vector2Int(1, 0));
+                            }
+                        }
+                    }
                 }
             }
 
             foreach (Vector2Int Moon in Moons)
             {
                 index = boardPosition + Moon * colorType;
-                if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0)
+                index3 = boardPosition + Moon * colorType;
+                if (index.x > 23 || index.y > 23 || index.x < 0 || index.y < 0 || index3.x > 23 || index3.y > 23 || index3.x < 0 || index3.y < 0)
                 {
                     continue;
                 }
@@ -3109,24 +3172,26 @@ public class Piece : MonoBehaviour
                 {
                     if (amountMoved == 0)
                     {
-                        index = boardPosition + 2 * pawnMove * colorType;
-
-                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        if (board[index3.y * 24 + index3.x] != null && board[index3.y * 24 + index3.x].pieceType != 0)
                         {
                             return moves;
                         }
                         else
                         {
-                            moves.Add(index);
+                            moves.Add(index3);
+                            index = boardPosition + 2 * pawnMove * colorType;
+                            if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                            {
+                                return moves;
+                            }
+                            moves.Add(index);  
                         }
 
-                        index = boardPosition + Moon * colorType;
-
-                        if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
+                        if (board[index3.y * 24 + index3.x] != null && board[index3.y * 24 + index3.x].pieceType != 0)
                         {
                             return moves;
                         }
-                        moves.Add(index);
+                        moves.Add(index3);
                     }
 
                     if (board[index.y * 24 + index.x] != null && board[index.y * 24 + index.x].pieceType != 0)
