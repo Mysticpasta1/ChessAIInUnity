@@ -10,6 +10,7 @@ TagManager:
   - board pieces
   - Input
   - tiles
+  - board tiles
   layers:
   - Default
   - TransparentFX

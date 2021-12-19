@@ -138,11 +138,17 @@ public class GameManager : MonoBehaviour
         if (endGame == Result.WhiteIsMated || endGame == Result.BlackIsMated || endGame == Result.Stalemate)
         {
             // Look for mate/stalemate
-            if (IsCheck(color))
+            if (IsCheck(!color))
             {
                 return color ? Result.WhiteIsMated : Result.BlackIsMated;
             }
-            return Result.Stalemate;
+            else if (Result.Stalemate == endGame) 
+            {
+                return Result.Stalemate;
+            } else
+            {
+                return Result.Playing;
+            }
         }
 
         int colorIndex = color ? 0 : 1; 
@@ -174,7 +180,7 @@ public class GameManager : MonoBehaviour
                     else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
-                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "AI vs AI stalemate";
                         Debug.Log("Game Over");
                     }
                 }
@@ -189,7 +195,7 @@ public class GameManager : MonoBehaviour
                     else if (Result.FiftyMoveRule == result || Result.Stalemate == result)
                     {
                         GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = true;
-                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "Ai vs AI stalemate";
+                        GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().text = "AI vs AI stalemate";
                         Debug.Log("Game Over");
                     }
                 }
@@ -299,6 +305,7 @@ public class GameManager : MonoBehaviour
                 {
                     isPlayerAI = true;
                     AIMove(isPlayerWhite);
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
@@ -307,6 +314,7 @@ public class GameManager : MonoBehaviour
                 {
                     isPlayerAI = true;
                     AIMove(!isPlayerWhite);
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
@@ -317,12 +325,14 @@ public class GameManager : MonoBehaviour
             {
                 if (isPlayerTurn)
                 {
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     isPlayerAI = false;
                     PlayerMove(isPlayerWhite);
                 }
                 else
                 {
+                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     isPlayerAI = true;
                     AIMove(!isPlayerWhite);
@@ -336,12 +346,14 @@ public class GameManager : MonoBehaviour
         {
             if (isPlayerTurn)
             {
+                GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                 printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(isPlayerWhite);
             }
             else
             {
+                GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                 printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(!isPlayerWhite);
