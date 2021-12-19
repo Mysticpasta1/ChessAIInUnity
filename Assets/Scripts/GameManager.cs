@@ -283,6 +283,8 @@ public class GameManager : MonoBehaviour
             }
             GameObject boardPiece = GameObject.FindGameObjectWithTag("board pieces");
             Destroy(boardPiece);
+            GameObject boardTiles = GameObject.FindGameObjectWithTag("board tiles");
+            Destroy(boardTiles);
             GameObject board = GameObject.FindGameObjectWithTag("Board");
             GenerateBoard gb = board.GetComponent<GenerateBoard>();
             gb.GenerateTiles();

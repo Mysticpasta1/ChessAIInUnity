@@ -21,6 +21,7 @@ public class GenerateBoard : MonoBehaviour
     public void GenerateTiles() //Generates board tiles
     {
         GameObject board = new GameObject("Board tiles");
+        board.tag = "board tiles";
         board.transform.parent = transform;
 
         for (int y=0; y<24; y++)
