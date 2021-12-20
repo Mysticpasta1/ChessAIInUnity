@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     public Piece lastSeletedPiece;
     Piece selectedPiece;
     List<Vector2Int> possiblePlayerMoves;
-    bool isPlayerTurn;
+    public bool isPlayerTurn;
     public bool isPlayerWhite = true; //0 is white
     public bool isAiVsMode; // true = ai vs ai
     public bool isPlayerVsPlayer;
@@ -64,6 +64,21 @@ public class GameManager : MonoBehaviour
         toolTipsEnabled = false;
     }
 
+    public void copyCurrentFenToClipboard()
+    {
+        TextEditor te = new TextEditor();
+        te.text = FenUtility.CurrentFen();
+        te.SelectAll();
+        te.Copy();
+    }
+
+    public void copyStartFenToClipboard()
+    {
+        TextEditor te = new TextEditor();
+        te.text = FenUtility.startFen;
+        te.SelectAll();
+        te.Copy();
+    }
 
     public void QuitGame()
     {
@@ -305,7 +320,6 @@ public class GameManager : MonoBehaviour
                 {
                     isPlayerAI = true;
                     AIMove(isPlayerWhite);
-                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
@@ -314,7 +328,6 @@ public class GameManager : MonoBehaviour
                 {
                     isPlayerAI = true;
                     AIMove(!isPlayerWhite);
-                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     //PlayerMove(!isPlayerWhite);
                     isPlayerTurn = !isPlayerTurn;
@@ -325,14 +338,12 @@ public class GameManager : MonoBehaviour
             {
                 if (isPlayerTurn)
                 {
-                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     isPlayerAI = false;
                     PlayerMove(isPlayerWhite);
                 }
                 else
                 {
-                    GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                     printGameResult(gameResult);
                     isPlayerAI = true;
                     AIMove(!isPlayerWhite);
@@ -346,14 +357,12 @@ public class GameManager : MonoBehaviour
         {
             if (isPlayerTurn)
             {
-                GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                 printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(isPlayerWhite);
             }
             else
             {
-                GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
                 printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(!isPlayerWhite);

@@ -99,23 +99,159 @@ public class FenUtility {
 	}
 
 	// Get the fen string of the current position
-	public static string CurrentFen (int pieceType) {
+	public static string CurrentFen () {
 		GameManager gameManager = GameManager.current;
 		string fen = "";
 		for (int rank = 23; rank >= 0; rank--) {
 			int numEmptyFiles = 0;
-			for (int file = 0; file < 8; file++) {
+			for (int file = 0; file < 24; file++)
+			{
 				int i = rank * 24 + file;
-				int piece = gameManager.Square[i];
-				bool isBlack = Piece.IsColour(piece, Piece.Black);
-				if (piece != 0) {
-					if (numEmptyFiles != 0) {
-						fen += numEmptyFiles;
+
+				if(gameManager.pieces[i] == null)
+                {
+					numEmptyFiles++;
+					if (numEmptyFiles != 0)
+					{
+						switch (numEmptyFiles)
+						{
+							case 24:
+								fen += "888";
+								break;
+							case 23:
+								fen += "887";
+								break;
+							case 22:
+								fen += "886";
+								break;
+							case 21:
+								fen += "885";
+								break;
+							case 20:
+								fen += "884";
+								break;
+							case 19:
+								fen += "883";
+								break;
+							case 18:
+								fen += "882";
+								break;
+							case 17:
+								fen += "881";
+								break;
+							case 16:
+								fen += "88";
+								break;
+							case 15:
+								fen += "87";
+								break;
+							case 14:
+								fen += "86";
+								break;
+							case 13:
+								fen += "85";
+								break;
+							case 12:
+								fen += "84";
+								break;
+							case 11:
+								fen += "83";
+								break;
+							case 10:
+								fen += "82";
+								break;
+							case 9:
+								fen += "81";
+								break;
+							case 8:
+							case 7:
+							case 6:
+							case 5:
+							case 4:
+							case 3:
+							case 2:
+							case 1:
+								fen += numEmptyFiles;
+								break;
+						}
 						numEmptyFiles = 0;
 					}
-						
+					continue;
+                }
+
+				int piece = gameManager.pieces[i].pieceType;
+				bool isBlack = !gameManager.pieces[i].color;
+				if (piece != 0)
+				{
+					if (numEmptyFiles != 0)
+					{
+						switch (numEmptyFiles)
+						{
+							case 24:
+								fen += "888";
+								break;
+							case 23:
+								fen += "887";
+								break;
+							case 22:
+								fen += "886";
+								break;
+							case 21:
+								fen += "885";
+								break;
+							case 20:
+								fen += "884";
+								break;
+							case 19:
+								fen += "883";
+								break;
+							case 18:
+								fen += "882";
+								break;
+							case 17:
+								fen += "881";
+								break;
+							case 16:
+								fen += "88";
+								break;
+							case 15:
+								fen += "87";
+								break;
+							case 14:
+								fen += "86";
+								break;
+							case 13:
+								fen += "85";
+								break;
+							case 12:
+								fen += "84";
+								break;
+							case 11:
+								fen += "83";
+								break;
+							case 10:
+								fen += "82";
+								break;
+							case 9:
+								fen += "81";
+								break;
+							case 8:
+							case 7:
+							case 6:
+							case 5:
+							case 4:
+							case 3:
+							case 2:
+							case 1:
+								fen += numEmptyFiles;
+								break;
+						}
+						numEmptyFiles = 0;
+					}
+
 					char pieceChar = ' ';
-					switch (pieceType) {
+					switch (piece)
+					{
 						case 2:
 							pieceChar = 'R';
 							break;
@@ -189,24 +325,89 @@ public class FenUtility {
 							pieceChar = 'Z';
 							break;
 					}
-					fen += isBlack ? pieceChar.ToString ().ToLower () : pieceChar.ToString ();
-						
-				} else {
+					fen += isBlack ? pieceChar.ToString().ToLower() : pieceChar.ToString();
+
+				}
+				else
+				{
 					numEmptyFiles++;
 				}
 
 			}
-			if (numEmptyFiles != 0) {
-				fen += numEmptyFiles;
+				if (numEmptyFiles != 0)
+				{
+					switch (numEmptyFiles)
+					{
+						case 24:
+							fen += "888";
+							break;
+						case 23:
+							fen += "887";
+							break;
+						case 22:
+							fen += "886";
+							break;
+						case 21:
+							fen += "885";
+							break;
+						case 20:
+							fen += "884";
+							break;
+						case 19:
+							fen += "883";
+							break;
+						case 18:
+							fen += "882";
+							break;
+						case 17:
+							fen += "881";
+							break;
+						case 16:
+							fen += "88";
+							break;
+						case 15:
+							fen += "87";
+							break;
+						case 14:
+							fen += "86";
+							break;
+						case 13:
+							fen += "85";
+							break;
+						case 12:
+							fen += "84";
+							break;
+						case 11:
+							fen += "83";
+							break;
+						case 10:
+							fen += "82";
+							break;
+						case 9:
+							fen += "81";
+							break;
+						case 8:
+						case 7:
+						case 6:
+						case 5:
+						case 4:
+						case 3:
+						case 2:
+						case 1:
+							fen += numEmptyFiles;
+							break;
+					}
+				}
+
+				if (rank != 0)
+				{
+					fen += '/';
+				}
 			}
-			if (rank != 0) {
-				fen += '/';
-			}
-		}
 
 		// Side to move
 		fen += ' ';
-		fen += (gameManager.isPlayerWhite) ? 'w' : 'b';
+		fen += (gameManager.isPlayerTurn) ? 'w' : 'b';
 
 		// 50 move counter
 		fen += ' ';
