@@ -1,13 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using static System.Math;
-using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -53,6 +47,7 @@ public class GameManager : MonoBehaviour
         isPlayerTurn = isPlayerWhite;
         undoMoves = new Stack<Move>();
         Square = new int[576];
+        Screen.fullScreenMode = FullScreenMode.Windowed;
     }
 
     public void toolTipsEnable()
@@ -289,6 +284,13 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.F11) && Screen.fullScreenMode.Equals(FullScreenMode.Windowed))
+        {
+            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+        } else if (Input.GetKeyDown(KeyCode.F11) && Screen.fullScreenMode.Equals(FullScreenMode.FullScreenWindow))
+        {
+            Screen.fullScreenMode = FullScreenMode.Windowed;
+        }
         gameResult = GetGameState(isPlayerWhite);
         if (booleanHasChange)
         {
