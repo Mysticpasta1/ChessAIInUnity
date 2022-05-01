@@ -1,4 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using Net;
+using Net.NetMessages;
+using Unity.Networking.Transport;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using static System.Math;
@@ -7,10 +13,15 @@ public class GameManager : MonoBehaviour
 {
     public enum Result { Playing, WhiteIsMated, BlackIsMated, Stalemate, FiftyMoveRule, InsufficientMaterial }
     public static GameManager current;
-    public Piece []pieces;
+    public int teamsTurn = 0;
+    public Piece[] pieces;
     public GameObject []tiles;
     public Piece lastSeletedPiece;
     Piece selectedPiece;
+    bool moved = false;
+    private bool teamColor; 
+    private int moveCount = 0;
+    private bool isFirstMove;
     List<Vector2Int> possiblePlayerMoves;
     public bool isPlayerTurn;
     public bool isPlayerWhite = true; //0 is white
@@ -20,7 +31,8 @@ public class GameManager : MonoBehaviour
     Move bestNegamaxMove;
     float boardEvaluationForPlayer = 0;
     bool booleanHasChange = false;
-    int currentIterativeSearchDepth;
+    int currentIterativeSearchDepth; 
+    bool isOnlineGame = false;
     bool abortSearch;
     private static int immediateMateScore = 100000;
     private float bestEval;
@@ -35,8 +47,16 @@ public class GameManager : MonoBehaviour
     public int plyCount = 1;
     public int[] Square;
     private Result endGame;
-
+    public bool isAiClicked;
+    
+    private int playerCount = -1;
+    private int currentTeam = -1;
     private event System.Action<Move> onSearchComplete;
+
+    public void Setup()
+    {
+        canvas = GameObject.FindWithTag("Canvas");
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -48,6 +68,113 @@ public class GameManager : MonoBehaviour
         undoMoves = new Stack<Move>();
         Square = new int[576];
         Screen.fullScreenMode = FullScreenMode.Windowed;
+        RegisterEvents();
+        DontDestroyOnLoad(this);
+    }
+
+    private void RegisterEvents()
+    {
+        NetUtility.S_WELCOME += OnWelcomeServer;
+        NetUtility.C_WELCOME += OnWelcomeClient;
+        NetUtility.C_START_GAME += OnStartGameClient;
+        NetUtility.S_MAKE_MOVE += OnMakeMoveServer;
+        NetUtility.C_MAKE_MOVE += OnMakeMoveClient;
+    }
+
+    public void OnMakeMoveClient(NetMessage msg)
+    {
+        NetMakeMove mm = msg as NetMakeMove;
+
+        Debug.Log($"MM : {mm.teamId} : {mm.originalX} : {mm.originalY} : {mm.destinationX} : {mm.destinationY}");
+        
+        if (mm.teamId != currentTeam)
+        {
+            Piece originalPiece = pieces[mm.originalY * 24 + mm.originalX];
+            if (originalPiece == null)
+            {
+                return;
+            }
+
+            possiblePlayerMoves = originalPiece.GenerateMoves(pieces);
+            RemoveIllegalMoves(isPlayerWhite, possiblePlayerMoves, originalPiece);
+            Piece temp = GetPieceViaPosition(new Vector2Int(mm.destinationX, mm.destinationY));
+            Move move = new Move(originalPiece, temp, new Vector2Int(mm.destinationX, mm.destinationY));
+            PlayMove(true, move, possiblePlayerMoves, true);
+            
+            /*if (!moved)
+            {
+                if (mm.teamId == 0 && originalPiece.color)
+                {
+                    if (mm.originalX != mm.destinationX || mm.originalY != mm.destinationY)
+                    {
+                        moved = true;
+                        PlayMove(true, move, possiblePlayerMoves, true);
+                    }
+                }
+
+                if (mm.teamId == 1 && originalPiece.color == false)
+                {
+                    if (mm.originalX != mm.destinationX || mm.originalY != mm.destinationY)
+                    {
+                        moved = true;
+                        PlayMove(true, move, possiblePlayerMoves, true);
+                    }
+                }
+            }*/
+        }
+    }
+
+    public void OnMakeMoveServer(NetMessage msg, NetworkConnection cnn)
+    {
+        NetMakeMove mm = msg as NetMakeMove;
+        //This is where you can do some validation checks for hacking!
+        //--
+        Server.Instance.Broadcast(mm);
+    }
+
+    public void UnRegisterEvents()
+    {
+        NetUtility.S_WELCOME -= OnWelcomeServer;
+        NetUtility.S_MAKE_MOVE -= OnMakeMoveServer;
+        NetUtility.C_WELCOME -= OnWelcomeClient;
+        NetUtility.C_START_GAME -= OnStartGameClient;
+        NetUtility.C_MAKE_MOVE -= OnMakeMoveClient;
+    }
+
+    private void OnWelcomeClient(NetMessage msg)
+    {
+        NetWelcome nw = msg as NetWelcome;
+
+        currentTeam = nw.AssignedTeam;
+
+        Debug.Log($"My assigned team is {nw.AssignedTeam}");
+    }
+    
+    public void OnWelcomeServer(NetMessage msg, NetworkConnection cnn)
+    {
+        NetWelcome nw = msg as NetWelcome;
+
+        nw.AssignedTeam = ++playerCount;
+
+        Server.Instance.SendToClient(cnn, nw);
+
+        if (playerCount == 1)
+        {
+            Server.Instance.Broadcast(new NetStartGame());
+        }
+    }
+
+    public void OnStartGameClient(NetMessage msg)
+    {
+        //Switch to Game Scene
+        GameObject go = GameObject.FindGameObjectWithTag("Menus");
+        go.GetComponent<Menus>().HandleStartGame();
+        isAiVsMode = false;
+        isPlayerVsPlayer = false;
+        isPlayerWhite = true;
+        isPlayerIsBlackMode = false;
+        booleanHasChange = true;
+        isOnlineGame = true;
     }
 
     public void toolTipsEnable()
@@ -77,58 +204,47 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
+        UnRegisterEvents();
         Application.Quit();
     }
 
-    public void PlayerVsPlayer(bool playerVsPlayer)
+    public void OnHomeGame()
     {
-        if(playerVsPlayer)
-        {
-            isAiVsMode = false;
-            isPlayerVsPlayer = true;
-            isPlayerWhite = true;
-            booleanHasChange = true;
-            isPlayerIsBlackMode = false;
-            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
-        }
+        isAiVsMode = false;
+        isPlayerVsPlayer = true;
+        isPlayerWhite = true;
+        booleanHasChange = true;
+        isPlayerIsBlackMode = false;
+        isOnlineGame = false;
+    }
+    
+    public void AIvsAI()
+    {
+        isAiVsMode = true;
+        isPlayerVsPlayer = false;
+        booleanHasChange = true;
+        isPlayerIsBlackMode = false;
+        isOnlineGame = false;
     }
 
-    public void AIvsAI(bool isAiVsAiOn)
+    public void PlayerPlaysWhite()
     {
-        if (isAiVsAiOn)
-        {
-            isAiVsMode = true;
-            isPlayerVsPlayer = false;
-            booleanHasChange = true;
-            isPlayerIsBlackMode = false;
-            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
-        }
+        isPlayerWhite = true;
+        isAiVsMode = false;
+        isPlayerVsPlayer = false;
+        booleanHasChange = true;
+        isPlayerIsBlackMode = false;
+        isOnlineGame = false;
     }
 
-    public void PlayerPlaysWhite(bool playerWhite)
+    public void PlayerPlaysBlack()
     {
-        if (playerWhite)
-        {
-            isPlayerWhite = true;
-            isAiVsMode = false;
-            isPlayerVsPlayer = false;
-            booleanHasChange = true;
-            isPlayerIsBlackMode = false;
-            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
-        }
-    }
-
-    public void PlayerPlaysBlack(bool playerBlack)
-    {
-        if (playerBlack)
-        {
-            isPlayerWhite = false;
-            isAiVsMode = false;
-            isPlayerVsPlayer = false;
-            booleanHasChange = true;
-            isPlayerIsBlackMode = true;
-            GameObject.FindGameObjectWithTag("Win Text").GetComponent<Text>().enabled = false;
-        }
+        isPlayerWhite = false;
+        isAiVsMode = false;
+        isPlayerVsPlayer = false;
+        booleanHasChange = true;
+        isPlayerIsBlackMode = true;
+        isOnlineGame = false;
     }
 
     public string getColor()
@@ -287,10 +403,12 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F11) && Screen.fullScreenMode.Equals(FullScreenMode.Windowed))
         {
             Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
-        } else if (Input.GetKeyDown(KeyCode.F11) && Screen.fullScreenMode.Equals(FullScreenMode.FullScreenWindow))
+        }
+        else if (Input.GetKeyDown(KeyCode.F11) && Screen.fullScreenMode.Equals(FullScreenMode.FullScreenWindow))
         {
             Screen.fullScreenMode = FullScreenMode.Windowed;
         }
+
         gameResult = GetGameState(isPlayerWhite);
         if (booleanHasChange)
         {
@@ -300,10 +418,12 @@ public class GameManager : MonoBehaviour
             {
                 Destroy(pieces[i]);
             }
+
             for (int i = 0; i < tiles.Length; i++)
             {
                 Destroy(tiles[i]);
             }
+
             GameObject boardPiece = GameObject.FindGameObjectWithTag("board pieces");
             Destroy(boardPiece);
             GameObject boardTiles = GameObject.FindGameObjectWithTag("board tiles");
@@ -314,26 +434,52 @@ public class GameManager : MonoBehaviour
             gb.GeneratePieces();
             booleanHasChange = false;
         }
-        if (!isPlayerVsPlayer)
+
+        if (!isOnlineGame)
         {
-            if (isAiVsMode)
+            if (!isPlayerVsPlayer)
             {
-                if (isPlayerTurn)
+                if (isAiVsMode)
                 {
-                    isPlayerAI = true;
-                    AIMove(isPlayerWhite);
-                    printGameResult(gameResult);
-                    //PlayerMove(!isPlayerWhite);
-                    isPlayerTurn = !isPlayerTurn;
+                    if (isPlayerTurn)
+                    {
+                        isPlayerAI = true;
+                        AIMove(isPlayerWhite);
+                        printGameResult(gameResult);
+                        //PlayerMove(!isPlayerWhite);
+                        isPlayerTurn = !isPlayerTurn;
+                        teamsTurn = 0;
+                    }
+                    else
+                    {
+                        isPlayerAI = true;
+                        AIMove(!isPlayerWhite);
+                        printGameResult(gameResult);
+                        //PlayerMove(!isPlayerWhite);
+                        isPlayerTurn = !isPlayerTurn;
+                        plyCount++;
+                        teamsTurn = 1;
+                    }
                 }
                 else
                 {
-                    isPlayerAI = true;
-                    AIMove(!isPlayerWhite);
-                    printGameResult(gameResult);
-                    //PlayerMove(!isPlayerWhite);
-                    isPlayerTurn = !isPlayerTurn;
-                    plyCount++;
+                    if (isPlayerTurn)
+                    {
+                        printGameResult(gameResult);
+                        isPlayerAI = false;
+                        PlayerMove(isPlayerWhite);
+                        teamsTurn = 0;
+                    }
+                    else
+                    {
+                        printGameResult(gameResult);
+                        isPlayerAI = true;
+                        AIMove(!isPlayerWhite);
+                        //PlayerMove(!isPlayerWhite);
+                        isPlayerTurn = !isPlayerTurn;
+                        plyCount++;
+                        teamsTurn = 1;
+                    }
                 }
             }
             else
@@ -343,15 +489,15 @@ public class GameManager : MonoBehaviour
                     printGameResult(gameResult);
                     isPlayerAI = false;
                     PlayerMove(isPlayerWhite);
+                    teamsTurn = 0;
                 }
                 else
                 {
                     printGameResult(gameResult);
-                    isPlayerAI = true;
-                    AIMove(!isPlayerWhite);
-                    //PlayerMove(!isPlayerWhite);
-                    isPlayerTurn = !isPlayerTurn;
+                    isPlayerAI = false;
+                    PlayerMove(!isPlayerWhite);
                     plyCount++;
+                    teamsTurn = 1;
                 }
             }
         }
@@ -362,6 +508,7 @@ public class GameManager : MonoBehaviour
                 printGameResult(gameResult);
                 isPlayerAI = false;
                 PlayerMove(isPlayerWhite);
+                teamsTurn = 0;
             }
             else
             {
@@ -369,6 +516,7 @@ public class GameManager : MonoBehaviour
                 isPlayerAI = false;
                 PlayerMove(!isPlayerWhite);
                 plyCount++;
+                teamsTurn = 1;
             }
         }
     }
@@ -667,31 +815,52 @@ public class GameManager : MonoBehaviour
                 {
                     return;
                 }
+
                 if(IsCheck(!whoseTurn))
                 {
                     return;
                 }
+
                 selectedPiece = pieces[mousePosition.y * 24 + mousePosition.x];
                 if (selectedPiece != null)
                 {
-                    if (selectedPiece.color != whoseTurn)
+                    if (isOnlineGame)
                     {
-                        lastSeletedPiece = selectedPiece;
-                        selectedPiece = null;
-                        return;
+                        if (currentTeam == 0 && selectedPiece.color == false || currentTeam == 0 && teamsTurn == 1||
+                            currentTeam == 1 && selectedPiece.color == true || currentTeam == 1 && teamsTurn == 0)
+                        {
+                            lastSeletedPiece = selectedPiece;
+                            selectedPiece = null;
+                            return;
+                        }
                     }
+
                     possiblePlayerMoves = selectedPiece.GenerateMoves(pieces);
                     RemoveIllegalMoves(whoseTurn, possiblePlayerMoves, selectedPiece);
-                    if(possiblePlayerMoves.Count ==0)
+                    if (possiblePlayerMoves.Count == 0)
                     {
                         lastSeletedPiece = selectedPiece;
                         selectedPiece = null;
                         return;
                     }
-                    ColorTiles(possiblePlayerMoves, false);
+                    
+                    if (currentTeam == 0)
+                    {
+                        if (selectedPiece.color == true)
+                        {
+                            ColorTiles(possiblePlayerMoves, false);
+                        }
+                    }
+                    
+                    if (currentTeam == 1)
+                    {
+                        if (selectedPiece.color == false)
+                        {
+                            ColorTiles(possiblePlayerMoves, false);
+                        } 
+                    }
                 }
             }
-           
         }
         else
         {
@@ -707,10 +876,32 @@ public class GameManager : MonoBehaviour
                 {
                     return;
                 }
+
+                if (isOnlineGame)
+                {
+                    if(currentTeam == 0) {
+                        if (selectedPiece.color == false)
+                        {
+                            lastSeletedPiece = selectedPiece;
+                            selectedPiece = null;
+                            return;
+                        }
+                    }
+                    else if (currentTeam == 1)
+                    {
+                        if (selectedPiece.color == true)
+                        {
+                            lastSeletedPiece = selectedPiece;
+                            selectedPiece = null;
+                            return;
+                        } 
+                    }
+                }
+                
                 Piece temp = GetPieceViaPosition(mousePosition);
                 Move move = new Move(selectedPiece, temp, mousePosition);
                 PlayMove(true, move, possiblePlayerMoves, true);
-                
+
             }
             else if (Input.GetMouseButtonDown(1)) //player deselects piece
             {
@@ -718,7 +909,7 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
+    
     public Vector2Int GetMousePosition() //returns mouse position
     {
         Vector3 mousePosition =  new Vector3((Camera.main.ScreenToWorldPoint(Input.mousePosition).x * 2.5f) + 13.5f, (Camera.main.ScreenToWorldPoint(Input.mousePosition).y * 2.5f) + 12.5f, Camera.main.ScreenToWorldPoint(Input.mousePosition).z);
@@ -867,6 +1058,18 @@ public class GameManager : MonoBehaviour
 
         if (isPermanent && IsPlayersPurposefulMove)
         {
+            //set online Position
+            NetMakeMove mm = new NetMakeMove();
+            mm.originalX = attackingPiece.startingBoardPosition.x;
+            mm.originalY = attackingPiece.startingBoardPosition.y;
+            mm.teamId = currentTeam;
+            if (attackingPiece.hasMoved)
+            {
+                mm.destinationX = attackingPiece.boardPosition.x;
+                mm.destinationY = attackingPiece.boardPosition.y;
+            }
+
+            Client.Instance.SendToServer(mm);
             lastSeletedPiece = selectedPiece;
             selectedPiece = null;
             fiftyMoveCounter++;

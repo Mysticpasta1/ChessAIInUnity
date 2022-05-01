@@ -11,6 +11,12 @@ TagManager:
   - Input
   - tiles
   - board tiles
+  - Canvas
+  - MainMenu
+  - MultiplayerMenu
+  - Menus
+  - OptionsFenMenu
+  - BetaWarning
   layers:
   - Default
   - TransparentFX

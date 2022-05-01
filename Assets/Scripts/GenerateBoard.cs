@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class GenerateBoard : MonoBehaviour
 {
@@ -37,7 +38,8 @@ public class GenerateBoard : MonoBehaviour
                 GameManager.current.tiles[y * 24 + x] = newPiece.gameObject;
             }
         }
-        board.transform.localScale = board.transform.localScale * 0.4f;
+        board.transform.localScale = (board.transform.localScale * 0.4f);
+        board.transform.localPosition = board.transform.localPosition + new Vector3(0f, 0f, 0f);
     }
 
     public string getFen()
@@ -67,7 +69,7 @@ public class GenerateBoard : MonoBehaviour
                 piece.pieceTypeInit(getFen(), new Vector2(x,y));
                 piece.getPieceSprites();
                 piece.transform.parent = board.transform;
-                piece.transform.localPosition = new Vector3(x * 0.4f- 5.1f, y * 0.4f - 4.7f, -1);
+                piece.transform.localPosition = new Vector3((x * 0.4f- 5.1f), (y * 0.4f - 4.7f), -1);
                 GameManager.current.pieces[y * 24 + x] = piece;
             }
         }
@@ -77,7 +79,7 @@ public class GenerateBoard : MonoBehaviour
             thing.AddComponent<BoxCollider2D>();
             thing.AddComponent<Zoom>();
             thing.GetComponent<BoxCollider2D>().size = new Vector2(0.4f, 0.4f);
-            thing.GetComponent<BoxCollider2D>().offset = new Vector2(0.01f, 0.02f);
+            thing.GetComponent<BoxCollider2D>().offset = new Vector2((0.01f), (0.02f));
             thing.transform.localScale = new Vector2(0.9f, 0.9f);
             thing.GetComponent<Zoom>().zoom = zoom;
             thing.GetComponent<Zoom>().square = square;
