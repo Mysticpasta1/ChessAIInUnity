@@ -138,6 +138,9 @@ public class Menus : MonoBehaviour
     {
         OnlineMenu.SetActive(true);
         WaitingMenu.SetActive(false);
+        GameManager gm = GameManager.current;
+        gm.playerCount = -1;
+        gm.currentTeam = -1;
         server.Shutdown();
         client.Shutdown();
     }

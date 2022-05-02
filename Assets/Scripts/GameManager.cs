@@ -49,8 +49,8 @@ public class GameManager : MonoBehaviour
     private Result endGame;
     public bool isAiClicked;
     
-    private int playerCount = -1;
-    private int currentTeam = -1;
+    public int playerCount = -1;
+    public int currentTeam = -1;
     private event System.Action<Move> onSearchComplete;
 
     public void Setup()
