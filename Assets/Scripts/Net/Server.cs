@@ -27,7 +27,7 @@ namespace Net
         public void Init(ushort port)
         {
             driver = NetworkDriver.Create();
-            NetworkEndPoint endPoint = NetworkEndPoint.AnyIpv4;
+            NetworkEndpoint endPoint = NetworkEndpoint.AnyIpv4;
             endPoint.Port = port;
 
             if (driver.Bind(endPoint) != 0)
