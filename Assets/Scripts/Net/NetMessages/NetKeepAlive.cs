@@ -9,18 +9,18 @@ namespace Net.NetMessages
             Code = OpCode.KEEP_ALIVE;
         }
 
-        public NetKeepAlive(DataStreamReader reader)
+        public NetKeepAlive(Unity.Collections.DataStreamReader reader)
         {
             Code = OpCode.KEEP_ALIVE;
             Deserialize(reader);
         }
 
-        public override void Serialize(ref DataStreamWriter writer)
+        public override void Serialize(ref Unity.Collections.DataStreamWriter writer)
         {
             writer.WriteByte((byte)Code);
         }
 
-        public override void Deserialize(DataStreamReader reader)
+        public override void Deserialize(Unity.Collections.DataStreamReader reader)
         {
 
         }

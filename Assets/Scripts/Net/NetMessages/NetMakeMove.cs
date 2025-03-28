@@ -19,13 +19,13 @@ namespace Net.NetMessages
             Code = OpCode.MAKE_MOVE;
         }
 
-        public NetMakeMove(DataStreamReader reader)
+        public NetMakeMove(Unity.Collections.DataStreamReader reader)
         {
             Code = OpCode.MAKE_MOVE;
             Deserialize(reader);
         }
         
-        public override void Serialize(ref DataStreamWriter writer)
+        public override void Serialize(ref Unity.Collections.DataStreamWriter writer)
         {
             writer.WriteByte((byte)Code);
             writer.WriteInt(originalX);
@@ -34,7 +34,7 @@ namespace Net.NetMessages
             writer.WriteInt(destinationY);
             writer.WriteInt(teamId);
         }
-        public override void Deserialize(DataStreamReader reader)
+        public override void Deserialize(Unity.Collections.DataStreamReader reader)
         {
             originalX = reader.ReadInt();
             originalY = reader.ReadInt();
